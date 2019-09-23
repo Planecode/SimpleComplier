@@ -2,8 +2,6 @@
 /****************************************************************************
 lexer.l
 ParserWizard generated Lex file.
-
-Date: 2019年9月23日
 ****************************************************************************/
 
 #include "parser.h"
@@ -31,6 +29,21 @@ Date: 2019年9月23日
 }
 
 // place any declarations here
+void void
+int int
+double double
+float float
+char char
+string string
+long long
+short short
+byte byte
+
+assign =
+
+delim [ \n\r\t]+
+number (\+|\-)?[1-9][0-9]*(.[0-9]*)?((e|E)(\+|\-)?[0-9]*)?
+id (_|[a-zA-Z0-9])(_|[a-zA-Z0-9])*
 
 %%
 
@@ -43,6 +56,20 @@ Date: 2019年9月23日
 %}
 
 // place your Lex rules here
+{void} {printf("VOID\n");}
+{int} {printf("INT\n");}
+{double} {printf("DOUBLE\n");}
+{float} {printf("FLOAT\n");}
+{char} {printf("CHAR\n");}
+{long} {printf("LONG\n");}
+{short} {printf("SHORT\n");}
+{byte} {printf("BYTE\n");}
+
+{assign} {printf("ASSIGN\n");}
+
+{delim} {}
+{number} {printf("NUMBER:%s\n", yytext);}
+{id} {printf("ID:%s\n", yytext);}
 
 %%
 

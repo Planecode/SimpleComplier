@@ -1,4 +1,4 @@
-/LexicalAnalysis/*.cpp
-/LexicalAnalysis/*.h
-/LexicalAnalysis/*.v
-/LexicalAnalysis/*.pgp
+/analysis/*.cpp
+/analysis/*.h
+/analysis/*.v
+/analysis/*.pgp
