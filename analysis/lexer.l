@@ -40,36 +40,36 @@ short short
 byte byte
 
 assign =
-EQ ==
-GT >
-LT <
-GE >=
-LE <=
-NZ !=
+eq ==
+gt >
+lt <
+ge >=
+le <=
+nz !=
 
-ADD +
-SUB -
-MUL *
-DIV /
-MOD %
-POW ^
+add +
+sub -
+mul *
+div /
+nod %
+pow ^
 
-ADD &&
-OR ||
-NOT !
+and &&
+or ||
+not !
 
-LBRACE {
-RBRACE }
-LP (
-RP )
-LSBRACKET [
-RSBRACKET ]
-SEMICOLON ;
-SQUITO '
-DQUITO "
-NOTE //
-LNOTE /*
-RNOTE */
+lbrace {
+rbrace }
+lp (
+rp )
+lsbpacket [
+rsbracket ]
+semicolon ;
+squito '
+dquito "
+note //
+lnote /*
+rnote */
 
 delim [ \n\r\t]+
 number (\+|\-)?[1-9][0-9]*(.[0-9]*)?((e|E)(\+|\-)?[0-9]*)?
@@ -97,37 +97,37 @@ id (_|[a-zA-Z0-9])(_|[a-zA-Z0-9])*
 
 
 {assign} {printf("ASSIGN\n");}
-{EQ}     {printf("EQ        ==\n");}
-{GT}     {printf("GT        >\n");}
-{LT}     {printf("LT        <\n");}
-{GE}     {printf("GE        >=\n");}
-{LE}     {printf("LE        <=\n");}
-{NZ}     {printf("NZ        !=\n");}
+{eq}     {printf("EQ        ==\n");}
+{gt}     {printf("GT        >\n");}
+{lt}     {printf("LT        <\n");}
+{ge}     {printf("GE        >=\n");}
+{le}     {printf("LE        <=\n");}
+{nz}     {printf("NZ        !=\n");}
 
-{ADD}      {printf("ADD      +\n");}
-{SUB}      {printf("SUB     -\n");}
-{MUL}      {printf("MUL       *\n");}
-{DIV}      {printf("DIV       /\n");}
-{MOD}      {printf("MOD       %\n");}
-{POW}      {printf("POW       ^\n");}
+{add}      {printf("ADD      +\n");}
+{sub}      {printf("SUB     -\n");}
+{mul}      {printf("MUL       *\n");}
+{div}      {printf("DIV       /\n");}
+{mod}      {printf("MOD       %\n");}
+{pow}      {printf("POW       ^\n");}
 
-{AND}     {printf("AND       &&\n");}
-{OR}      {printf("OR        ||\n");}
-{NOT}     {printf("NOT   !\n");}
+{and}     {printf("AND       &&\n");}
+{or}      {printf("OR        ||\n");}
+{not}     {printf("NOT   !\n");}
 
 
-{LBRACE}       {printf("LBRACE    {\n");}
-{RBRACE}       {printf("RBRACE    }\n");}
-{LP}           {printf("LP    (\n");}
-{RP}           {printf("RP    )\n");}
-{LSBRACKET}    {printf("LSBRACKET [\n");}
-{RSBRACKET}    {printf("RSBRACKET ]\n");}
-{SEMICOLON}    {printf("SEMICOLON ;\n");}
-{SQUITO}       {printf("SQUITO    '\n");}
-{DQUITO}       {printf("DQUITO    \"\n");}
-{NOTE}         {printf("NOTE      \//\n");}
-{LNOTE}        {printf("LNOTE     \/*\n");}
-{RNOTE}        {printf("RNOTE     */\n");}
+{lbrace}       {printf("LBRACE    {\n");}
+{rbrace}       {printf("RBRACE    }\n");}
+{lp}           {printf("LP    (\n");}
+{rp}           {printf("RP    )\n");}
+{lsbracket}    {printf("LSBRACKET [\n");}
+{rsbracket}    {printf("RSBRACKET ]\n");}
+{semicolon}    {printf("SEMICOLON ;\n");}
+{squito}       {printf("SQUITO    '\n");}
+{dquito}       {printf("DQUITO    \"\n");}
+{note}         {printf("NOTE      \//\n");}
+{lnote}        {printf("LNOTE     \/*\n");}
+{rnote}        {printf("RNOTE     */\n");}
 
 
 
