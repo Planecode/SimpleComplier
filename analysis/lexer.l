@@ -62,7 +62,7 @@ inc \+\+
 dec \-\-
 
 
-bitwiseadd &
+bitwiseadd \&
 and \&\&
 or \|\|
 not \!
