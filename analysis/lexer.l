@@ -62,7 +62,11 @@ inc \+\+
 dec \-\-
 
 
+bitwiseor \|
 bitwiseadd \&
+lshift \<\<
+rshift \>\>
+
 and \&\&
 or \|\|
 not \!
@@ -115,7 +119,11 @@ error ([_a-zA-Z0-9]*)|.
 {dec} {printf("DEC %s\n", yytext);}
 
 
+{bitwiseor} {printf("BITWISEOR %s\n", yytext);}
 {bitwiseadd} {printf("BITWISEADD %s\n", yytext);}
+{lshift} {printf("LSHIFT %s\n", yytext);}
+{rshift} {printf("RSHIFT %s\n", yytext);}
+
 {and} {printf("AND %s\n", yytext);}
 {or} {printf("OR %s\n", yytext);}
 {not} {printf("LNOT %s\n", yytext);}
