@@ -58,6 +58,14 @@ mul \*
 div \/
 mod \%
 pow \^
+inc \+\+
+dec \-\-
+
+
+bitwiseor \|
+bitwiseadd \&
+lshift \<\<
+rshift \>\>
 
 and \&\&
 or \|\|
@@ -70,7 +78,7 @@ rp \)
 lsbracket \[
 rsbracket \]
 semicolon \;
-comma \,;
+comma \,
 point \.
 squito \'
 dquito \"
@@ -107,6 +115,14 @@ error ([_a-zA-Z0-9]*)|.
 {div} {printf("DIV %s\n", yytext);}
 {mod} {printf("MOD %s\n", yytext);}
 {pow} {printf("POW %s\n", yytext);}
+{inc} {printf("INC %s\n", yytext);}
+{dec} {printf("DEC %s\n", yytext);}
+
+
+{bitwiseor} {printf("BITWISEOR %s\n", yytext);}
+{bitwiseadd} {printf("BITWISEADD %s\n", yytext);}
+{lshift} {printf("LSHIFT %s\n", yytext);}
+{rshift} {printf("RSHIFT %s\n", yytext);}
 
 {and} {printf("AND %s\n", yytext);}
 {or} {printf("OR %s\n", yytext);}
