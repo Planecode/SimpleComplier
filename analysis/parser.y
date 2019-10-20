@@ -5,6 +5,10 @@ ParserWizard generated YACC file.
 ****************************************************************************/
 
 #include "lexer.h"
+#include "fstream"
+#include "iostream"
+#include "string"
+using namespace std;
 %}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -52,18 +56,19 @@ Grammar
 
 /////////////////////////////////////////////////////////////////////////////
 // programs section
-
 int main(void)
 {
-	int n = 1;
 	lexer lexer;
+	string sFile;
+	cin >> sFile;
+	lexer.yyin = new std::ifstream(sFile);
 	parser parser;
+	int n = 1;
 	if (parser.yycreate(&lexer)) {
 		if (lexer.yycreate(&parser)) {
 			n = parser.yyparse();
 		}
 	}
-	getchar();
 	return n;
 }
 

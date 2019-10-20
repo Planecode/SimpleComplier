@@ -9,6 +9,9 @@ ParserWizard generated Lex file.
 #include "map"
 #include "set"
 #include "algorithm"
+#include "string"
+#include "fstream"
+using namespace std;
 int install_id(char* yytext);
 int install_num(char* yytext);
 int install_str(char* yytext);
@@ -28,11 +31,13 @@ set<string> wordSet{"void", "int", "double", "float", "string", "long",
 
 // class definition
 {
+virtual int yygetchar();
 	// place any extra class members here
 }
 
 // constructor
 {
+	
 	// place any extra initialisation code here
 }
 
@@ -42,7 +47,6 @@ set<string> wordSet{"void", "int", "double", "float", "string", "long",
 }
 
 // place any declarations here
-
 
 assign =
 eq ==
@@ -190,4 +194,18 @@ int install_str(char* yytext)
 	if(idMap.count(str) == 0)
 		idMap[str] = int(new string(yytext));
 	return idMap[str];
+}
+int lexer::yygetchar()
+{
+	if(yyin->eof())
+	{
+		return -1;
+	}
+	else
+	{
+		char c;
+		yyin->get(c);
+		char * m_p = new char(c);
+		return (unsigned char)*m_p;
+	}
 }
