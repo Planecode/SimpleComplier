@@ -197,19 +197,15 @@ int install_str(char* yytext)
 }
 int lexer::yygetchar()
 {
-	char c;
 	if(yyin->eof())
 	{
-		c = '\0';
+		return -1;
 	}
 	else
 	{
+		char c;
 		yyin->get(c);
+		char * m_p = new char(c);
+		return (unsigned char)*m_p;
 	}
-	char * m_p = new char(c);
-    if (*m_p == '\0')
-	{
-        return -1;
-	}
-    return (unsigned char)*m_p;
 }
