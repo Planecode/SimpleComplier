@@ -1,5 +1,6 @@
 /analysis/*.cpp
 /analysis/*.h
+!/analysis/tree.h
 /analysis/*.v
 /analysis/*.pgp
 /analysis/*.pgw
