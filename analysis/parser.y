@@ -10,6 +10,8 @@ ParserWizard generated YACC file.
 #include "lexer.h"
 #include "tree.h"
 using namespace std;
+
+ofstream output;
 %}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -61,8 +63,12 @@ int main(void)
 {
 	lexer lexer;
 	string sFile;
-	cin >> sFile;
+	string printFile;
+	cin >> sFile >> printFile;
 	lexer.yyin = new std::ifstream(sFile);
+	output.open(printFile);
+	streambuf *streams = cout.rdbuf();
+	cout.rdbuf(output.rdbuf());
 	parser parser;
 	int n = 1;
 	if (parser.yycreate(&lexer)) {
@@ -70,6 +76,7 @@ int main(void)
 			n = parser.yyparse();
 		}
 	}
+	cout.rdbuf(streams);
 	return n;
 }
 
