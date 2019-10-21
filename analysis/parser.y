@@ -10,6 +10,14 @@ ParserWizard generated YACC file.
 #include "string"
 using namespace std;
 %}
+%token ASSIGN EQ GT LT
+%token GE LE NZ ADD SUB
+%token MUL DIV MOD POW INC DEC
+%token BITWISEOR BITWISEADD LSHIFT
+%token RSHIFT AND OR LNOT LBRACE RBRACE LP
+%token RP LSBRACKET RSBRACKET SEMICOLON
+%token COMMA POINT SQUITO DQUITO
+%token NOTE NUMBER ERROR
 
 /////////////////////////////////////////////////////////////////////////////
 // declarations section
