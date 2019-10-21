@@ -4,13 +4,13 @@ lexer.l
 ParserWizard generated Lex file.
 ****************************************************************************/
 
+#include <cstdio>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <string>
+#include <fstream>
 #include "parser.h"
-#include "stdio.h"
-#include "map"
-#include "set"
-#include "algorithm"
-#include "string"
-#include "fstream"
 using namespace std;
 int install_id(char* yytext);
 int install_num(char* yytext);

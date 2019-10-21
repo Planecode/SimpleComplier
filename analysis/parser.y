@@ -4,10 +4,11 @@ parser.y
 ParserWizard generated YACC file.
 ****************************************************************************/
 
+#include <fstream>
+#include <iostream>
+#include <string>
 #include "lexer.h"
-#include "fstream"
-#include "iostream"
-#include "string"
+#include "tree.h"
 using namespace std;
 %}
 
