@@ -17,7 +17,7 @@ using namespace std;
 %token RSHIFT AND OR LNOT LBRACE RBRACE LP
 %token RP LSBRACKET RSBRACKET SEMICOLON
 %token COMMA POINT SQUITO DQUITO
-%token NOTE NUMBER ERROR
+%token NOTE NUMBER ERROR ID STR
 
 /////////////////////////////////////////////////////////////////////////////
 // declarations section
