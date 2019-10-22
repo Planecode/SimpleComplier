@@ -19,6 +19,8 @@ using namespace std;
 %token RP LSBRACKET RSBRACKET SEMICOLON
 %token COMMA POINT SQUITO DQUITO
 %token NOTE NUMBER ERROR ID STR
+%token VOID IF ELSE FOR SWITCH MAIN CONTINUE BREAK CASE DEFAULT WHILE NEW RETURN
+%token INT DOUBLE FLOAT STRING LONG SHORT BYTE 
 
 /////////////////////////////////////////////////////////////////////////////
 // declarations section

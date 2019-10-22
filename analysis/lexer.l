@@ -4,24 +4,23 @@ lexer.l
 ParserWizard generated Lex file.
 ****************************************************************************/
 
+#include <cstdio>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <string>
+#include <fstream>
 #include "parser.h"
-#include "stdio.h"
-#include "map"
-#include "set"
-#include "algorithm"
-#include "string"
-#include "fstream"
-extern int yylval
+extern int yylval;
 using namespace std;
 int install_id(char* yytext);
 int install_num(char* yytext);
 int install_str(char* yytext);
-string get_token(char* yytext);
-void strtoupper(string& str);
+int get_token(char* yytext);
 map<string, int> idMap;
-set<string> wordSet{"void", "int", "double", "float", "string", "long", 
-"short", "byte", "if", "else", "for", "switch", "main", "continue", 
-"break", "case", "default", "while", "new", "return"};
+map<string, int> wordMap{{"void", VOID}, {"int", INT}, {"double", DOUBLE}, {"float", FLOAT}, {"string", STRING}, {"long", LONG}, 
+{"short", SHORT}, {"byte", BYTE}, {"if", IF}, {"else", ELSE}, {"for", FOR}, {"switch", SWITCH}, {"main",MAIN}, {"continue", CONTINUE}, 
+{"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"new", NEW}, {"return", RETURN}};
 %}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,7 +114,7 @@ error ([_a-zA-Z0-9]*)|.
 {nz} {return NZ;}
 
 {add} {return ADD;}
-{sub} {return SUB}
+{sub} {return SUB;}
 {mul} {return MUL;}
 {div} {return DIV;}
 {mod} {return MOD;}
@@ -149,7 +148,7 @@ error ([_a-zA-Z0-9]*)|.
 
 {delim} {}
 {number} {return NUMBER;}
-{id} {string token = get_token(yytext);if(token == "ID"){yylval=install_id(yytext); return ID;);}else{return token.c_str()};}
+{id} {int token = get_token(yytext);if(token == ID){yylval = install_id(yytext);}return token;}
 {str} {yylval=install_str(yytext); return STR;}
 {error} {return ERROR;}
 
@@ -157,25 +156,15 @@ error ([_a-zA-Z0-9]*)|.
 
 /////////////////////////////////////////////////////////////////////////////
 // programs section
-void strtoupper(string& str){
-    int len=str.size();
-    for(int i=0;i<len;i++){
-        if(str[i]>='a'&&str[i]<='z'){
-            str[i]-=32;
-        }
-    }
-}
 
-string get_token(char* yytext)
+int get_token(char* yytext)
 {
 	string word = yytext;
-	if(wordSet.find(word) != wordSet.end())
+	if(wordMap.count(word) != 0)
 	{
-		strtoupper(word);
-		return word;
+		return wordMap[word];
 	}
-		
-	return "ID";
+	return ID;
 }
 
 int install_id(char* yytext)
