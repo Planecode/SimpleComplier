@@ -4,13 +4,14 @@ lexer.l
 ParserWizard generated Lex file.
 ****************************************************************************/
 
-#include <cstdio>
-#include <map>
-#include <set>
-#include <algorithm>
-#include <string>
-#include <fstream>
 #include "parser.h"
+#include "stdio.h"
+#include "map"
+#include "set"
+#include "algorithm"
+#include "string"
+#include "fstream"
+extern int yylval
 using namespace std;
 int install_id(char* yytext);
 int install_num(char* yytext);
@@ -105,52 +106,52 @@ error ([_a-zA-Z0-9]*)|.
 %}
 
 // place your Lex rules here
-{assign} {printf("ASSIGN %s\n", yytext);}
-{eq} {printf("EQ %s\n", yytext);}
-{gt} {printf("GT %s\n", yytext);}
-{lt} {printf("LT %s\n", yytext);}
-{ge} {printf("GE %s\n", yytext);}
-{le} {printf("LE %s\n", yytext);}
-{nz} {printf("NZ %s\n", yytext);}
+{assign} {return ASSIGN;}
+{eq} {return EQ;}
+{gt} {return GT;}
+{lt} {return LT;}
+{ge} {return GE;}
+{le} {return LE;}
+{nz} {return NZ;}
 
-{add} {printf("ADD %s\n", yytext);}
-{sub} {printf("SUB %s\n", yytext);}
-{mul} {printf("MUL %s\n", yytext);}
-{div} {printf("DIV %s\n", yytext);}
-{mod} {printf("MOD %s\n", yytext);}
-{pow} {printf("POW %s\n", yytext);}
-{inc} {printf("INC %s\n", yytext);}
-{dec} {printf("DEC %s\n", yytext);}
-
-
-{bitwiseor} {printf("BITWISEOR %s\n", yytext);}
-{bitwiseadd} {printf("BITWISEADD %s\n", yytext);}
-{lshift} {printf("LSHIFT %s\n", yytext);}
-{rshift} {printf("RSHIFT %s\n", yytext);}
-
-{and} {printf("AND %s\n", yytext);}
-{or} {printf("OR %s\n", yytext);}
-{not} {printf("LNOT %s\n", yytext);}
+{add} {return ADD;}
+{sub} {return SUB}
+{mul} {return MUL;}
+{div} {return DIV;}
+{mod} {return MOD;}
+{pow} {return POW;}
+{inc} {return INC;}
+{dec} {return DEC;}
 
 
-{lbrace} {printf("LBRACE %s\n", yytext);}
-{rbrace} {printf("RBRACE %s\n", yytext);}
-{lp} {printf("LP %s\n", yytext);}
-{rp} {printf("RP %s\n", yytext);}
-{lsbracket} {printf("LSBRACKET %s\n", yytext);}
-{rsbracket} {printf("RSBRACKET %s\n", yytext);}
-{semicolon} {printf("SEMICOLON %s\n", yytext);}
-{comma} {printf("COMMA %s\n", yytext);}
-{point} {printf("POINT %s\n", yytext);}
-{squito} {printf("SQUITO %s\n", yytext);}
-{dquito} {printf("DQUITO %s\n", yytext);}
-{note} {printf("NOTE %s\n", yytext);}
+{bitwiseor} {return BITWISEOR;}
+{bitwiseadd} {return BITWISEADD;}
+{lshift} {return LSHIFT;}
+{rshift} {return RSHIFT;}
+
+{and} {return AND;}
+{or} {return OR;}
+{not} {return LNOT;}
+
+
+{lbrace} {return LBRACE;}
+{rbrace} {return RBRACE;}
+{lp} {return LP;}
+{rp} {return RP;}
+{lsbracket} {return LSBRACKET;}
+{rsbracket} {return RSBRACKET;}
+{semicolon} {return SEMICOLON;}
+{comma} {return COMMA;}
+{point} {return POINT;}
+{squito} {return SQUITO;}
+{dquito} {return DQUITO;}
+{note} {return NOTE;}
 
 {delim} {}
-{number} {printf("NUMBER %s %s\n", yytext, yytext);}
-{id} {string token = get_token(yytext);if(token == "ID"){printf("ID %s %d\n", yytext, install_id(yytext));}else{printf("%s %s\n",token.c_str(), yytext);};}
-{str} {printf("String %s %d\n", yytext, install_str(yytext));}
-{error} {printf("ERROR %s\n", yytext);}
+{number} {return NUMBER;}
+{id} {string token = get_token(yytext);if(token == "ID"){yylval=install_id(yytext); return ID;);}else{return token.c_str()};}
+{str} {yylval=install_str(yytext); return STR;}
+{error} {return ERROR;}
 
 %%
 
