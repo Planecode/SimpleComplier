@@ -10,6 +10,7 @@ ParserWizard generated YACC file.
 #include "lexer.h"
 #include "tree.h"
 using namespace std;
+tree parserTree;
 %}
 %token ASSIGN EQ GT LT
 %token GE LE NZ ADD SUB
@@ -46,7 +47,7 @@ using namespace std;
 // attribute type
 %include {
 #ifndef YYSTYPE
-#define YYSTYPE int
+#define YYSTYPE node*
 #endif
 }
 
@@ -58,9 +59,19 @@ using namespace std;
 // rules section
 
 // place your YACC rules here (there must be at least one)
-
-Grammar
-	: /* empty */
+	program: declaration_group {parserTree.root = $1;}
+	;
+	declaration_group: declaration_block declaration_group {$$ = new node("declaration_group", 0, new(node*[2]){$1, $2}, 2);}
+	| {$$ = 0;}
+	;
+	declaration_block: declaration_var {$$ = $1;}
+	;
+	declaration_var: var_type ID SEMICOLON {$$ = new node("declaration_var", 0, new(node*[2]){$1, $2}, 2);}
+	| var_type ID assign NUMBER SEMICOLON {$$ = new node("declaration_var", 0, new(node*[4]){$1, $2, $3, $4}, 4);}
+	;
+	var_type: INT {$$ = new node(" int ", 0, 0, 0);}
+	;
+	assign: ASSIGN {$$ = new node(" = ", 0, 0, 0);}
 	;
 
 %%
@@ -80,6 +91,7 @@ int main(void)
 			n = parser.yyparse();
 		}
 	}
+	parserTree.print(parserTree.root, "");
 	return n;
 }
 
