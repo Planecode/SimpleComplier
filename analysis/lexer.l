@@ -11,6 +11,7 @@ ParserWizard generated Lex file.
 #include <string>
 #include <fstream>
 #include "parser.h"
+#include "tree.h"
 extern int yylval;
 using namespace std;
 int install_id(char* yytext);
@@ -147,9 +148,9 @@ error ([_a-zA-Z0-9]*)|.
 {note} {return NOTE;}
 
 {delim} {}
-{number} {return NUMBER;}
-{id} {int token = get_token(yytext);if(token == ID){yylval = install_id(yytext);}return token;}
-{str} {yylval=install_str(yytext); return STR;}
+{number} {string value = yytext; yylval = new node(" number: " + value + " ", 0, 0, 0); return NUMBER;}
+{id} {int token = get_token(yytext);if(token == ID){yylval = new node(" id ", install_id(yytext), 0, 0);}return token;}
+{str} {yylval=new node("str", install_str(yytext), 0, 0); return STR;}
 {error} {return ERROR;}
 
 %%
@@ -187,14 +188,14 @@ int install_str(char* yytext)
 }
 int lexer::yygetchar()
 {
+	char c;
+	yyin->get(c);
 	if(yyin->eof())
 	{
 		return -1;
 	}
 	else
 	{
-		char c;
-		yyin->get(c);
 		char * m_p = new char(c);
 		return (unsigned char)*m_p;
 	}

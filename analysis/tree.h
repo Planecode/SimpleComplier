@@ -54,7 +54,12 @@ public:
             cout << "|---";
             block += "|   ";
         }
-        cout << nowNode->getDescription() + " " << nowNode->getValue()<<endl;
+        cout << nowNode->getDescription();
+		if(nowNode->getValue() != 0)
+		{
+			cout << nowNode->getValue();
+		}
+		cout << endl;
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             print(nowNode->cNode[i], block);
