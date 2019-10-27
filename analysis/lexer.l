@@ -148,8 +148,8 @@ error ([_a-zA-Z0-9]*)|.
 {note} {return NOTE;}
 
 {delim} {}
-{number} {string value = yytext; yylval = new node(" number: " + value + " ", 0, 0, 0); return NUMBER;}
-{id} {int token = get_token(yytext);if(token == ID){yylval = new node(" id ", install_id(yytext), 0, 0);}return token;}
+{number} {string value = yytext; yylval = new node("number: " + value, 0, 0, 0); return NUMBER;}
+{id} {int token = get_token(yytext);if(token == ID){yylval = new node("id", install_id(yytext), 0, 0);}return token;}
 {str} {yylval=new node("str", install_str(yytext), 0, 0); return STR;}
 {error} {return ERROR;}
 
