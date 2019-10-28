@@ -98,7 +98,7 @@ tree parserTree;
     if($2 != 0){cNodeLength = $2->cNodeLength;}
     $$ = new node("statement", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
     | expression SEMICOLON statement {int cNodeLength = 0;
-    if($2 != 0){cNodeLength = $2->cNodeLength;}
+    if($3 != 0){cNodeLength = $3->cNodeLength;}
     $$ = new node("statement", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
     | {$$ = 0;}
     ;
@@ -106,7 +106,7 @@ tree parserTree;
     conditional_statement: if_statement {$$ = new node("conditional_statement", 0, new(node*[1]){$1}, 1);}
     | if_statement eles_statement {$$ = new node("conditional_statement", 0, new(node*[2]){$1, $2}, 2);}
     ;
-    if_statement: IF LP relational_expression RP LBRACE statement RBRACE {$$ = new node("if_statement", 0, new(node*[2]){$3, $6}, 2);}
+    if_statement: IF LP logical_or_expression RP LBRACE statement RBRACE {$$ = new node("if_statement", 0, new(node*[2]){$3, $6}, 2);}
     ;
     eles_statement: ELSE LBRACE statement RBRACE {$$ = new node("else_statement", 0, new(node*[1]){$3}, 1);}
     ;
@@ -114,12 +114,20 @@ tree parserTree;
     loop_statement: for_statememt {$$ = $1;}
     | while_statement {$$ = $1;}
     ;
-    for_statememt: FOR LP  RP LBRACE statement RBRACE {$$ = new node("for_statement", 0, new(node*[1]){$5}, 1);}
+    for_statememt: FOR LP declaration_var logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
+    $$ = new node("for_statement", 0, new(node*[4]){$3, $4, $6, $9}, 4);}
     ;
-    while_statement: WHILE LP relational_expression RP LBRACE statement RBRACE {$$ = new node("while_statement", 0, new(node*[2]){$3, $6}, 2);}
+    while_statement: WHILE LP logical_or_expression RP LBRACE statement RBRACE {$$ = new node("while_statement", 0, new(node*[2]){$3, $6}, 2);}
     ;
 
     var_type: INT {$$ = new node("int", 0, 0, 0);}
+    | DOUBLE {$$ = new node("double", 0, 0, 0);}
+    | FLOAT {$$ = new node("float", 0, 0, 0);}
+    | STRING {$$ = new node("string", 0, 0, 0);}
+    | LONG {$$ = new node("long", 0, 0, 0);}
+    | SHORT {$$ = new node("short", 0, 0, 0);}
+    | BYTE {$$ = new node("byte", 0, 0, 0);}
+    | VOID {$$ = new node("void", 0, 0, 0);}
     ;
     assign: ASSIGN {$$ = new node("=", 0, 0, 0);}
     ;
