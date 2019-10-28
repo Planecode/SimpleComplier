@@ -69,6 +69,7 @@ tree parserTree;
     declaration_block: declaration_var {$$ = $1;}
     | declaration_function {$$ = $1;}
     | main_function {$$ = $1;}
+    | statement_list {$$ = $1;}
     ;
     main_function: var_type main LP paramester_list RP LBRACE statement RBRACE {$$ = new node("main_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
     ;
@@ -120,6 +121,223 @@ tree parserTree;
     ;
     assign: ASSIGN {$$ = new node("=", 0, 0, 0);}
     ;
+    
+    statement_list: _statement statement_list {$$ = new node("statement_list", 0, new(node*[2]){$1, $2}, 2);}
+	| {$$ = 0;}
+	;
+	_statement: expression SEMICOLON {$$ = new node("statement", 0, new(node*[1]){$1}, 1);}
+	;
+	
+	expression
+	: assignment_expression {$$ = $1;}
+	| logical_or_expression {$$ = $1;}
+	| logical_and_expression {$$ = $1;}
+	| inclusive_or_expression {$$ = $1;}
+	| and_expression {$$ = $1;}
+	| equality_expression {$$ = $1;}
+	| relational_expression {$$ = $1;}
+	| shift_expression {$$ = $1;}
+	| additive_expression {$$ = $1;}
+	| multiplicative_expression {$$ = $1;}
+	| power_expression {$$ = $1;}
+	| cast_expression {$$ = $1;}
+	| unary_expression {$$ = $1;}
+	| postfix_expression {$$ = $1;}
+	| primary_expression {$$ = $1;}
+	| assignment_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| logical_or_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| logical_and_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| inclusive_or_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| and_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| equality_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| relational_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| shift_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| additive_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| multiplicative_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| power_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| cast_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| unary_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| postfix_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| primary_expression comma expression {$$ = new node("expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	comma: COMMA {$$ = new node(" , ", 0, 0, 0);}
+	;
+	
+	assignment_expression        //赋值运算符（16级）
+	: unary_expression assign assignment_expression {$$ = new node("assignment_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| {$$ = 0;}
+	;
+	//assignment_operator
+	//: '='
+	//| MUL_ASSIGN
+	//| DIV_ASSIGN
+	//| MOD_ASSIGN
+	//| ADD_ASSIGN
+	//| SUB_ASSIGN
+	//| LEFT_ASSIGN
+	//| RIGHT_ASSIGN
+	//| AND_ASSIGN
+	//| XOR_ASSIGN
+	//| OR_ASSIGN
+	//;
+	
+	//conditional_expression       //三元条件运算符（15级）
+	//: logical_or_expression
+	//| logical_or_expression '?' expression ':' conditional_expression
+	//;
+	//conditional_expression
+	//;
+
+	
+	logical_or_expression       //逻辑或（14级）
+	: logical_and_expression {$$ = $1;}
+	| logical_or_expression or logical_and_expression {$$ = new node("logical_or_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	or: OR {$$ = new node(" || ", 0, 0, 0);}
+	;
+	
+	logical_and_expression      //逻辑与（13级）
+	: inclusive_or_expression {$$ = $1;}
+	| logical_and_expression and inclusive_or_expression {$$ = new node("logical_and_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	and: AND {$$ = new node(" && ", 0, 0, 0);}
+	;
+	
+	inclusive_or_expression     //位或（12级）
+	: and_expression {$$ = $1;}
+	| inclusive_or_expression bitwiseor and_expression {$$ = new node("inclusive_or_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	bitwiseor: BITWISEOR {$$ = new node(" | ", 0, 0, 0);}
+	;
+	
+	//exclusive_or_expression     //位异或（11级）
+	//: and_expression {$$ = $1;}
+	//| exclusive_or_expression '^' and_expression {$$ = new node("exclusive_or_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	//;
+	
+	and_expression              //位与（10级）
+	: equality_expression {$$ = $1;}
+	| and_expression bitwiseadd equality_expression {$$ = new node("and_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	
+	bitwiseadd: BITWISEADD {$$ = new node(" & ", 0, 0, 0);}
+	;
+	
+	equality_expression          //相等运算符（9级）
+	: relational_expression {$$ = $1;}
+	| equality_expression eq relational_expression {$$ = new node("equality_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| equality_expression nz relational_expression {$$ = new node("equality_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	eq: EQ {$$ = new node(" == ", 0, 0, 0);}
+	;
+	nz: NZ {$$ = new node(" != ", 0, 0, 0);}
+	;
+	
+	relational_expression        //关系运算符（8级）
+	: shift_expression {$$ = $1;}
+	| relational_expression lt shift_expression {$$ = new node("relational_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| relational_expression gt shift_expression {$$ = new node("relational_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| relational_expression le shift_expression {$$ = new node("relational_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| relational_expression ge shift_expression {$$ = new node("relational_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	gt: GT {$$ = new node(" > ", 0, 0, 0);}
+	;
+	lt: LT {$$ = new node(" < ", 0, 0, 0);}
+	;
+	ge: GE {$$ = new node(" >= ", 0, 0, 0);}
+	;
+	le: LE {$$ = new node(" <= ", 0, 0, 0);}
+	;
+	
+	shift_expression              //移位运算符（7级）
+	: additive_expression {$$ = $1;}
+	| shift_expression lshift additive_expression {$$ = new node("shift_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| shift_expression rshift additive_expression {$$ = new node("shift_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	lshift: LSHIFT {$$ = new node(" << ", 0, 0, 0);}
+	;
+	rshift: RSHIFT {$$ = new node(" >> ", 0, 0, 0);}
+	;
+	
+	additive_expression           //加法类型表达式（6级）
+	: multiplicative_expression {$$ = $1;}
+	| additive_expression add multiplicative_expression {$$ = new node("additive_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| additive_expression sub multiplicative_expression {$$ = new node("additive_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	add: ADD {$$ = new node(" + ", 0, 0, 0);}
+	;
+	sub: SUB {$$ = new node(" - ", 0, 0, 0);}
+	;
+	
+	multiplicative_expression     //乘法表达式（5级）
+	: power_expression {$$ = $1;}
+	| multiplicative_expression mul power_expression {$$ = new node("multiplicative_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| multiplicative_expression div power_expression {$$ = new node("multiplicative_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	| multiplicative_expression mod power_expression {$$ = new node("multiplicative_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	mul: MUL {$$ = new node(" * ", 0, 0, 0);}
+	;
+	div: DIV {$$ = new node(" / ", 0, 0, 0);}
+	;
+	mod: MOD {$$ = new node(" % ", 0, 0, 0);}
+	;
+	
+	power_expression
+	: cast_expression {$$ = $1;}
+	| power_expression pow cast_expression {$$ = new node("power_expression", 0, new(node*[3]){$1,$2,$3}, 3);}
+	;
+	pow: POW {$$ = new node(" ^ ", 0, 0, 0);}
+	;
+	
+	cast_expression              //强制类型表达式（4级）
+	: unary_expression {$$ = $1;}
+	| lp var_type rp cast_expression {$$ = new node("cast_expression", 0, new(node*[4]){$1,$2,$3,$4}, 4);}
+	;
+	
+	lp: LP {$$ = new node(" ( ", 0, 0, 0);}
+	;
+	rp: RP {$$ = new node(" ) ", 0, 0, 0);}
+	;
+	
+	unary_expression                //一元表达式（3级）
+	: postfix_expression {$$ = $1;}
+	| inc unary_expression {$$ = new node("unary_expression", 0, new(node*[2]){$1,$2}, 2);}
+	| dec unary_expression {$$ = new node("unary_expression", 0, new(node*[2]){$1,$2}, 2);}
+	| not cast_expression {$$ = new node("unary_expression", 0, new(node*[2]){$1,$2}, 2);}  //单目转型表达式，&，*，+，-，~，!
+	//| SIZEOF unary_expression
+	//| SIZEOF '(' type_name ')'
+	;
+	not: LNOT {$$ = new node(" ! ", 0, 0, 0);}
+	;
+	
+	postfix_expression               //后缀表达式（2级）                        
+	: primary_expression {$$ = $1;}
+	//| postfix_expression '[' expression ']'                 //数组
+	//| postfix_expression '(' ')'                            //函数（无参数）
+	//| postfix_expression '(' argument_expression_list ')'   //函数
+	//| postfix_expression '.' IDENTIFIER                     //成员
+	//| postfix_expression '->' IDENTIFIER                    //成员
+	| postfix_expression inc {$$ = new node("postfix_expression", 0, new(node*[2]){$1,$2}, 2);}      //自加
+	| postfix_expression dec {$$ = new node("postfix_expression", 0, new(node*[2]){$1,$2}, 2);}      //自减
+	;
+	inc: INC {$$ = new node(" ++ ", 0, 0, 0);}
+	;
+	dec: DEC {$$ = new node(" -- ", 0, 0, 0);}
+	;
+	//argument_expression_list       //函数的参数表
+	//: assignment_expression
+	//| argument_expression_list ',' assignment_expression
+	//;
+	
+	primary_expression               //基本表达式（1级）
+	: ID {$$ = $1;}
+	| NUMBER {$$ = $1;}
+	| STR {$$ = $1;}
+	//| CONSTANT
+	//| STRING_LITERAL
+	| lp expression rp {$$ = new node("primary_experssion", 0, new(node*[3]){$1, $2, $3}, 3);}
+	;
+	
 
 %%
 
