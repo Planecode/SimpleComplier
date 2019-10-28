@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <string>
-using namespace std;
 
+using namespace std;
 class node
 {
     string description;
@@ -29,7 +29,7 @@ public:
         return value;
     }
 };
-
+typedef node* (*UnitNode);
 class tree
 {
 public:
@@ -42,29 +42,53 @@ public:
     {
 
     }
+    void setRoot(node *nowNode)
+    {
+        root = nowNode;
+    }
     void print(node* nowNode, string block)
     {
-        cout << block;
         if(nowNode == 0)
         {
             return;
         }
+        cout << block;
         if(nowNode != root)
         {
             cout << "|---";
             block += "|   ";
         }
-        cout << nowNode->getDescription();
-		if(nowNode->getValue() != 0)
-		{
-			cout << nowNode->getValue();
-		}
-		cout << endl;
+        cout << " " << nowNode->getDescription() << " ";
+        if(nowNode->getValue() != 0)
+        {
+            cout << nowNode->getValue();
+        }
+        cout << endl;
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             print(nowNode->cNode[i], block);
         }
         return;
+    }
+    UnitNode unit_node(node* singleNode, node* mutiNode)
+    {
+        int cNodeLength = 0;
+        if(mutiNode != 0)
+        {
+            cNodeLength = mutiNode->cNodeLength;
+        }
+        UnitNode newCNode = new (node*[cNodeLength + 1]){};
+        newCNode[0] = singleNode;
+        for(int i =0; i < cNodeLength; i++)
+        {
+            newCNode[i + 1] = mutiNode->cNode[i];
+        }
+        if(mutiNode != 0)
+        {
+            delete[] mutiNode->cNode;
+            delete mutiNode;
+        }
+        return newCNode;
     }
 };
 

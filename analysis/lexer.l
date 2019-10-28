@@ -33,18 +33,18 @@ map<string, int> wordMap{{"void", VOID}, {"int", INT}, {"double", DOUBLE}, {"flo
 // class definition
 {
 virtual int yygetchar();
-	// place any extra class members here
+    // place any extra class members here
 }
 
 // constructor
 {
-	
-	// place any extra initialisation code here
+    
+    // place any extra initialisation code here
 }
 
 // destructor
 {
-	// place any extra cleanup code here
+    // place any extra cleanup code here
 }
 
 // place any declarations here
@@ -101,8 +101,8 @@ error ([_a-zA-Z0-9]*)|.
 // rules section
 
 %{
-	// extract yylval for use later on in actions
-	YYSTYPE YYFAR& yylval = *(YYSTYPE YYFAR*)yyparserptr->yylvalptr;
+    // extract yylval for use later on in actions
+    YYSTYPE YYFAR& yylval = *(YYSTYPE YYFAR*)yyparserptr->yylvalptr;
 %}
 
 // place your Lex rules here
@@ -148,8 +148,8 @@ error ([_a-zA-Z0-9]*)|.
 {note} {return NOTE;}
 
 {delim} {}
-{number} {string value = yytext; yylval = new node(" number: " + value + " ", 0, 0, 0); return NUMBER;}
-{id} {int token = get_token(yytext);if(token == ID){yylval = new node(" id ", install_id(yytext), 0, 0);}return token;}
+{number} {string value = yytext; yylval = new node("number: " + value, 0, 0, 0); return NUMBER;}
+{id} {int token = get_token(yytext);if(token == ID){yylval = new node("id", install_id(yytext), 0, 0);}return token;}
 {str} {yylval=new node("str", install_str(yytext), 0, 0); return STR;}
 {error} {return ERROR;}
 
@@ -160,43 +160,43 @@ error ([_a-zA-Z0-9]*)|.
 
 int get_token(char* yytext)
 {
-	string word = yytext;
-	if(wordMap.count(word) != 0)
-	{
-		return wordMap[word];
-	}
-	return ID;
+    string word = yytext;
+    if(wordMap.count(word) != 0)
+    {
+        return wordMap[word];
+    }
+    return ID;
 }
 
 int install_id(char* yytext)
 {
-	string id = yytext;
-	if(idMap.count(id) == 0)
-	{
-		idMap[id] = int(new string(yytext));
-	}
-	return idMap[id];
+    string id = yytext;
+    if(idMap.count(id) == 0)
+    {
+        idMap[id] = int(new string(yytext));
+    }
+    return idMap[id];
 }
 
 int install_str(char* yytext)
 {
-	string str = yytext;
-	str = str.substr(1, str.length()-2);
-	if(idMap.count(str) == 0)
-		idMap[str] = int(new string(yytext));
-	return idMap[str];
+    string str = yytext;
+    str = str.substr(1, str.length()-2);
+    if(idMap.count(str) == 0)
+        idMap[str] = int(new string(yytext));
+    return idMap[str];
 }
 int lexer::yygetchar()
 {
-	char c;
-	yyin->get(c);
-	if(yyin->eof())
-	{
-		return -1;
-	}
-	else
-	{
-		char * m_p = new char(c);
-		return (unsigned char)*m_p;
-	}
+    char c;
+    yyin->get(c);
+    if(yyin->eof())
+    {
+        return -1;
+    }
+    else
+    {
+        char * m_p = new char(c);
+        return (unsigned char)*m_p;
+    }
 }
