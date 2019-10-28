@@ -162,8 +162,8 @@ tree parserTree;
     comma: COMMA {$$ = new node(" , ", 0, 0, 0);}
     ;
 	
-    assignment_expression: unary_expression assign assignment_expression {$$ = new node("assignment_expression", 0, new(node*[3]){$1,$2,$3}, 3);}      
-    | {$$ = 0;}
+    assignment_expression: unary_expression
+    | unary_expression assign assignment_expression {$$ = new node("assignment_expression", 0, new(node*[3]){$1,$2,$3}, 3);}      
     ;                          //¸³ÖµÔËËã·û£¨16¼¶£©
     //assignment_operator
     //: '='
