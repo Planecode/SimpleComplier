@@ -56,6 +56,16 @@ lt \<
 ge \>=
 le \<=
 nz !=
+mulassign \*\=
+divassign \/\=
+modassign \%\=
+addassign \+\=
+subassign \-\=
+lshiftassign \<\<\=
+rshiftassign \>\>\=
+andassign \&\=
+orassign \|\=
+xorassign \^\=
 
 add \+
 sub \-
@@ -113,6 +123,17 @@ error ([_a-zA-Z0-9]*)|.
 {ge} {return GE;}
 {le} {return LE;}
 {nz} {return NZ;}
+{mulassign} {return MUL_ASSIGN;}
+{divassign} {return DIV_ASSIGN;}
+{modassign} {return MOD_ASSIGN;}
+{addassign} {return ADD_ASSIGN;}
+{subassign} {return SUB_ASSIGN;}
+{lshiftassign} {return LSHIFT_ASSIGN;}
+{rshiftassign} {return RSHIFT_ASSIGN;}
+{andassign} {return AND_ASSIGN;}
+{orassign} {return OR_ASSIGN;}
+{xorassign} {return XOR_ASSIGN;}
+
 
 {add} {return ADD;}
 {sub} {return SUB;}

@@ -13,6 +13,8 @@ using namespace std;
 tree parserTree;
 %}
 %token ASSIGN EQ GT LT
+%token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN
+%token LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN OR_ASSIGN XOR_ASSIGN
 %token GE LE NZ ADD SUB
 %token MUL DIV MOD POW INC DEC
 %token BITWISEOR BITWISEADD LSHIFT
@@ -159,12 +161,23 @@ tree parserTree;
     | cast_expression COMMA expression {$$ = new node("expression", 0, new(node*[2]){$1, $3}, 2);}
     | unary_expression COMMA expression {$$ = new node("expression", 0, new(node*[2]){$1, $3}, 2);}
     ;
-	
+    
 
-    assignment_expression: ID ASSIGN expression {$$ = new node("assignment_expression", 0, new(node*[2]){$1, $3}, 2);}      
+    assignment_expression: ID ASSIGN expression {$$ = new node("assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID MUL_ASSIGN expression {$$ = new node("mul_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID DIV_ASSIGN expression {$$ = new node("div_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID MOD_ASSIGN expression {$$ = new node("mod_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID ADD_ASSIGN expression {$$ = new node("add_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID SUB_ASSIGN expression {$$ = new node("sub_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID LSHIFT_ASSIGN expression {$$ = new node("lshift_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID RSHIFT_ASSIGN expression {$$ = new node("rshift_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID AND_ASSIGN expression {$$ = new node("and_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID OR_ASSIGN expression {$$ = new node("or_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    | ID XOR_ASSIGN expression {$$ = new node("xor_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+          
     ;
     
-	    
+        
     logical_or_expression: logical_and_expression {$$ = $1;}
     | logical_or_expression OR logical_and_expression {$$ = new node("logical_or_expression", 0, new(node*[2]){$1, $3}, 2);}
     ;
@@ -198,7 +211,7 @@ tree parserTree;
     | relational_expression LE shift_expression {$$ = new node("le_relational_expression", 0, new(node*[2]){$1, $3}, 2);}
     | relational_expression GE shift_expression {$$ = new node("ge_relational_expression", 0, new(node*[2]){$1, $3}, 2);}
     ;
-	    
+        
     shift_expression: additive_expression {$$ = $1;}
     | shift_expression LSHIFT additive_expression {$$ = new node("lshift_expression", 0, new(node*[2]){$1, $3}, 2);}
     | shift_expression RSHIFT additive_expression {$$ = new node("rshift_expression", 0, new(node*[2]){$1, $3}, 2);}
@@ -240,7 +253,7 @@ tree parserTree;
     ;
     dec: DEC {$$ = new node(" -- ", 0, 0, 0);}
     ;
- 	    
+        
 
 %%
 
