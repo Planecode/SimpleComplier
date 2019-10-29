@@ -152,17 +152,17 @@ tree parserTree;
     | assignment_expression COMMA expression {$$ = new node(",", 0, new(node*[2]){$1, $3}, 2);}
     ;
 
-    assignment_expression: ID ASSIGN expression {$$ = new node("assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID MUL_ASSIGN expression {$$ = new node("mul_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID DIV_ASSIGN expression {$$ = new node("div_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID MOD_ASSIGN expression {$$ = new node("mod_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID ADD_ASSIGN expression {$$ = new node("add_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID SUB_ASSIGN expression {$$ = new node("sub_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID LSHIFT_ASSIGN expression {$$ = new node("lshift_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID RSHIFT_ASSIGN expression {$$ = new node("rshift_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID AND_ASSIGN expression {$$ = new node("and_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID OR_ASSIGN expression {$$ = new node("or_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
-    | ID XOR_ASSIGN expression {$$ = new node("xor_assign_expression", 0, new(node*[2]){$1, $3}, 2);}
+    assignment_expression: ID ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID MUL_ASSIGN expression {$$ = new node("*=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID DIV_ASSIGN expression {$$ = new node("/=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID MOD_ASSIGN expression {$$ = new node("%=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID ADD_ASSIGN expression {$$ = new node("+=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID SUB_ASSIGN expression {$$ = new node("-=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID LSHIFT_ASSIGN expression {$$ = new node(">>=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID RSHIFT_ASSIGN expression {$$ = new node("<<=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID AND_ASSIGN expression {$$ = new node("&=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID OR_ASSIGN expression {$$ = new node("|=", 0, new(node*[2]){$1, $3}, 2);}
+    | ID XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}
           
     ;
     
