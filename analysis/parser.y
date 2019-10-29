@@ -63,9 +63,10 @@ tree parserTree;
 // place your YACC rules here (there must be at least one)
     program: declaration_group{parserTree.root = $1;}
     ;
-    declaration_group: declaration_block declaration_group {int cNodeLength = 0;
-    if($2 != 0){cNodeLength = $2->cNodeLength;}
-    $$ = new node("program", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
+    declaration_group: declaration_block declaration_group {
+        int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("program", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
     | {$$ = 0;}
     ;
     declaration_block: main_function {$$ = $1;}
@@ -74,66 +75,86 @@ tree parserTree;
     ;
     
     main_function: var_type MAIN LP paramester_list RP LBRACE statement RBRACE {
-    $$ = new node("main_function", 0, new(node*[3]){$1, $4, $7}, 3);}
+        $$ = new node("main_function", 0, new(node*[3]){$1, $4, $7}, 3);}
     ;
-    declaration_var: var_type ID {$$ = new node("declaration_var", 0, new(node*[2]){$1, $2}, 2);}
-    | var_type assignment_expression {int cNodeLength = 0;
-    if($2 != 0){cNodeLength = $2->cNodeLength;}
-    $$ = new node("declaration_var", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
-    | declaration_var COMMA ID {int cNodeLength = 0;
-    if($1 != 0){cNodeLength = $1->cNodeLength;}
-    $$ = new node("declaration_var", 0, parserTree.unit_node($3, $1), cNodeLength + 1);}
-    | declaration_var COMMA assignment_expression {int cNodeLength = 0;
-    if($1 != 0){cNodeLength = $1->cNodeLength;}
-    $$ = new node("declaration_var", 0, parserTree.unit_node($3, $1), cNodeLength + 1);}
+    declaration_var: var_type ID {
+        $$ = new node("declaration_var", 0, new(node*[2]){$1, $2}, 2);}
+    | var_type assignment_expression {
+        int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("declaration_var", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
+    | declaration_var COMMA ID {
+        int cNodeLength = 0;
+        if($1 != 0){cNodeLength = $1->cNodeLength;}
+        $$ = new node("declaration_var", 0, parserTree.unit_node($3, $1), cNodeLength + 1);}
+    | declaration_var COMMA assignment_expression {
+        int cNodeLength = 0;
+        if($1 != 0){cNodeLength = $1->cNodeLength;}
+        $$ = new node("declaration_var", 0, parserTree.unit_node($3, $1), cNodeLength + 1);}
     ;
     declaration_function: var_type ID LP paramester_list RP LBRACE statement RBRACE {
-    $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
+        $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
     ;
 
-    paramester_list: paramester COMMA paramester_list {int cNodeLength = 0;
-    if($3 != 0){cNodeLength = $3->cNodeLength;}
+    paramester_list: paramester COMMA paramester_list {
+        int cNodeLength = 0;
+        if($3 != 0){cNodeLength = $3->cNodeLength;}
     $$ = new node("paramester_list", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | paramester {$$ = new node("paramester_list", 0, new(node*[1]){$1}, 1);}
+    | paramester {
+        $$ = new node("paramester_list", 0, new(node*[1]){$1}, 1);}
     | {$$ = 0;}
     ;
-    paramester: var_type ID {$$ = new node("paramester", 0, new(node*[2]){$1, $2}, 2);}
+    paramester: var_type ID {
+        $$ = new node("paramester", 0, new(node*[2]){$1, $2}, 2);}
     ;
 
-    statement: declaration_var SEMICOLON statement {int cNodeLength = 0;
-    if($3 != 0){cNodeLength = $3->cNodeLength;}
-    $$ = new node("statement", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | conditional_statement statement {int cNodeLength = 0;
-    if($2 != 0){cNodeLength = $2->cNodeLength;}
-    $$ = new node("statement", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
-    | loop_statement statement {int cNodeLength = 0;
-    if($2 != 0){cNodeLength = $2->cNodeLength;}
-    $$ = new node("statement", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
-    | expression SEMICOLON statement {int cNodeLength = 0;
-    if($3 != 0){cNodeLength = $3->cNodeLength;}
-    $$ = new node("statement", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
+    statement: single_statement statement {
+        int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("statement", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
+    | control_statement statement {
+        int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("statement", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
     | {$$ = 0;}
     ;
 
-    conditional_statement: if_statement {$$ = new node("conditional_statement", 0, new(node*[1]){$1}, 1);}
-    | if_statement eles_statement {$$ = new node("conditional_statement", 0, new(node*[2]){$1, $2}, 2);}
+    control_statement: conditional_statement {$$ = $1;}
+    | loop_statement {$$ = $1;}
+    ;
+
+    single_statement: declaration_var SEMICOLON {$$ = $1;}
+    | expression SEMICOLON {$$ = $1;}
+    ;
+
+    conditional_statement: if_statement {
+        $$ = new node("conditional_statement", 0, new(node*[1]){$1}, 1);}
+    | if_statement eles_statement {
+        $$ = new node("conditional_statement", 0, new(node*[2]){$1, $2}, 2);}
     ;
     if_statement: IF LP logical_or_expression RP LBRACE statement RBRACE {
-    $$ = new node("if_statement", 0, new(node*[2]){$3, $6}, 2);}
+        $$ = new node("if_statement", 0, new(node*[2]){$3, $6}, 2);}
+    | IF LP logical_or_expression RP single_statement {
+        $$ = new node("if_statement", 0, new(node*[2]){$3, $5}, 2);}
+    | IF LP logical_or_expression RP control_statement {
+        $$ = new node("if_statement", 0, new(node*[2]){$3, $5}, 2);}
     ;
-    eles_statement: ELSE LBRACE statement RBRACE {$$ = new node("else_statement", 0, new(node*[1]){$3}, 1);}
+    eles_statement: ELSE LBRACE statement RBRACE {
+        $$ = new node("else_statement", 0, new(node*[1]){$3}, 1);}
+    | ELSE single_statement {
+        $$ = new node("else_statement", 0, new(node*[1]){$2}, 1);}
+    | ELSE control_statement {
+        $$ = new node("else_statement", 0, new(node*[1]){$2}, 1);}
     ;
 
     loop_statement: for_statememt {$$ = $1;}
     | while_statement {$$ = $1;}
     ;
-    for_statememt: FOR LP declaration_var SEMICOLON logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
-    $$ = new node("for_statement", 0, new(node*[4]){$3, $5, $7, $10}, 4);}
-    | FOR LP assignment_expression SEMICOLON logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
-    $$ = new node("for_statement", 0, new(node*[4]){$3, $5, $7, $10}, 4);}
+    for_statememt: FOR LP single_statement logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
+        $$ = new node("for_statement", 0, new(node*[4]){$3, $4, $6, $9}, 4);}
     ;
     while_statement: WHILE LP logical_or_expression RP LBRACE statement RBRACE {
-    $$ = new node("while_statement", 0, new(node*[2]){$3, $6}, 2);}
+        $$ = new node("while_statement", 0, new(node*[2]){$3, $6}, 2);}
     ;
 
     var_type: INT {$$ = new node("int", 0, 0, 0);}
@@ -228,7 +249,7 @@ tree parserTree;
     | LNOT parenthesized_expression {$$ = new node("!", 0, new(node*[1]){$2}, 1);}
     ;
 
-    declaration_expression: parenthesized_expression {$$ = $2;}
+    declaration_expression: parenthesized_expression {$$ = $1;}
     | NUMBER {$$ = $1;}
     | ID {$$ = $1;}
     | STR {$$ = $1;}
