@@ -166,7 +166,7 @@ error ([_a-zA-Z0-9]*)|.
 {point} {return POINT;}
 {squito} {return SQUITO;}
 {dquito} {return DQUITO;}
-{note} {return NOTE;}
+{note} {}
 
 {delim} {}
 {number} {string value = yytext; yylval = new node("number: " + value, 0, 0, 0); return NUMBER;}
