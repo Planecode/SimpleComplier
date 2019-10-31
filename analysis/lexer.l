@@ -21,7 +21,7 @@ int get_token(char* yytext);
 map<string, int> idMap;
 map<string, int> wordMap{{"void", VOID}, {"int", INT}, {"double", DOUBLE}, {"float", FLOAT}, {"string", STRING}, {"long", LONG}, 
 {"short", SHORT}, {"byte", BYTE}, {"if", IF}, {"else", ELSE}, {"for", FOR}, {"switch", SWITCH}, {"main",MAIN}, {"continue", CONTINUE}, 
-{"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"new", NEW}, {"return", RETURN}};
+{"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"do", DO}, {"new", NEW}, {"return", RETURN}};
 %}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -95,8 +95,7 @@ rsbracket \]
 semicolon \;
 comma \,
 point \.
-squito \'
-dquito \"
+colon \:
 note (\/\/.*(\r|\n|(\r\n)))|(\/\*((\*+[^\*\/]+)*[^\*]*)*\*+\/)
 
 delim [ \n\r\t]+
@@ -164,8 +163,7 @@ error ([_a-zA-Z0-9]*)|.
 {semicolon} {return SEMICOLON;}
 {comma} {return COMMA;}
 {point} {return POINT;}
-{squito} {return SQUITO;}
-{dquito} {return DQUITO;}
+{colon} {return COLON;}
 {note} {}
 
 {delim} {}

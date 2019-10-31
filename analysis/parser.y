@@ -20,9 +20,9 @@ tree parserTree;
 %token BITWISEOR BITWISEADD LSHIFT
 %token RSHIFT AND OR LNOT LBRACE RBRACE LP
 %token RP LSBRACKET RSBRACKET SEMICOLON
-%token COMMA POINT SQUITO DQUITO
-%token NOTE NUMBER ERROR ID STR
-%token VOID IF ELSE FOR SWITCH MAIN CONTINUE BREAK CASE DEFAULT WHILE NEW RETURN
+%token COMMA POINT COLON
+%token NUMBER ERROR ID STR
+%token VOID IF ELSE FOR SWITCH MAIN CONTINUE BREAK CASE DEFAULT WHILE DO NEW RETURN
 %token INT DOUBLE FLOAT STRING LONG SHORT BYTE 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -33,6 +33,7 @@ tree parserTree;
 
 // class definition
 {
+    virtual void yyerror(const char YYFAR* text);
     // place any extra class members here
 }
 
@@ -61,7 +62,7 @@ tree parserTree;
 // rules section
 
 // place your YACC rules here (there must be at least one)
-    program: declaration_group{parserTree.root = $1;}
+    program: declaration_group {parserTree.root = $1;}
     ;
     declaration_group: declaration_block declaration_group {
         int cNodeLength = 0;
@@ -125,12 +126,24 @@ tree parserTree;
 
     single_statement: declaration_var SEMICOLON {$$ = $1;}
     | expression SEMICOLON {$$ = $1;}
+    | function_expression SEMICOLON {$$ = $1;}
+    ;
+
+    function_expression: function_key_word expression {$$ = new node("function_expression", 0, new(node*[2]){$1, $2}, 2);}
+    ;
+
+    function_key_word: RETURN {$$ = new node("RETURN", 0, 0, 0);}
+    | CONTINUE {$$ = new node("CONTINUE", 0, 0, 0);}
+    | BREAK {$$ = new node("BREAK", 0, 0, 0);}
+    | NEW {$$ = new node("NEW", 0, 0, 0);}
     ;
 
     conditional_statement: if_statement {
         $$ = new node("conditional_statement", 0, new(node*[1]){$1}, 1);}
     | if_statement eles_statement {
         $$ = new node("conditional_statement", 0, new(node*[2]){$1, $2}, 2);}
+    | switch_statement {
+        $$ = new node("conditional_statement", 0, new(node*[1]){$1}, 1);}
     ;
     if_statement: IF LP logical_or_expression RP LBRACE statement RBRACE {
         $$ = new node("if_statement", 0, new(node*[2]){$3, $6}, 2);}
@@ -146,15 +159,34 @@ tree parserTree;
     | ELSE control_statement {
         $$ = new node("else_statement", 0, new(node*[1]){$2}, 1);}
     ;
+    switch_statement: SWITCH LP expression RP LBRACE switch_match RBRACE {
+        $$ = new node("switch_statement", 0, new(node*[2]){$3, $6}, 2);}
+    ;
+    switch_match: case_list {$$ = new node("switch_match", 0, new(node*[1]){$1}, 1);}
+    | case_list default_case {$$ = new node("switch_match", 0, new(node*[2]){$1, $2}, 2);}
+    ;
+    case_list: single_case case_list {int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("case_list", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
+    | {$$ = 0;}
+    ;
+    single_case: CASE NUMBER COLON statement {$$ = new node("single_case", 0, new(node*[2]){$2, $4}, 2);}
+    ;
+    default_case: DEFAULT COLON statement {$$ = new node("default_case", 0, new(node*[1]){$3}, 1);}
+    ;
 
     loop_statement: for_statememt {$$ = $1;}
     | while_statement {$$ = $1;}
+    | do_while_statement {$$ = $1;}
     ;
     for_statememt: FOR LP single_statement logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
         $$ = new node("for_statement", 0, new(node*[4]){$3, $4, $6, $9}, 4);}
     ;
     while_statement: WHILE LP logical_or_expression RP LBRACE statement RBRACE {
         $$ = new node("while_statement", 0, new(node*[2]){$3, $6}, 2);}
+    ;
+    do_while_statement: DO LBRACE statement RBRACE WHILE LP logical_or_expression RP SEMICOLON {
+        $$ = new node("do_while_statement", 0, new(node*[2]){$3, $7}, 2);}
     ;
 
     var_type: INT {$$ = new node("int", 0, 0, 0);}
@@ -183,8 +215,7 @@ tree parserTree;
     | ID RSHIFT_ASSIGN expression {$$ = new node("<<=", 0, new(node*[2]){$1, $3}, 2);}
     | ID AND_ASSIGN expression {$$ = new node("&=", 0, new(node*[2]){$1, $3}, 2);}
     | ID OR_ASSIGN expression {$$ = new node("|=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}
-          
+    | ID XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}  
     ;
     
     logical_or_expression: logical_and_expression {$$ = $1;}
@@ -263,13 +294,19 @@ tree parserTree;
 
 /////////////////////////////////////////////////////////////////////////////
 // programs section
+lexer lexer;
+parser parser;
+
+void parser::yyerror(const char YYFAR* text)
+{
+    cout<< "Line " << lexer.yylineno << ": syntax error near " << lexer.yytext << endl;
+}
+
 int main(void)
 {
-    lexer lexer;
     string sFile;
     cin >> sFile;
     lexer.yyin = new std::ifstream(sFile);
-    parser parser;
     int n = 1;
     if (parser.yycreate(&lexer)) {
         if (lexer.yycreate(&parser)) {
