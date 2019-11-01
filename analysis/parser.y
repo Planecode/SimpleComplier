@@ -215,6 +215,7 @@ tree parserTree;
     | SHORT {$$ = new node("short", 0, 0, 0);}
     | BYTE {$$ = new node("byte", 0, 0, 0);}
     | VOID {$$ = new node("void", 0, 0, 0);}
+    | STRUCT ID {$$ = new node("struct", 0, new(node*[1]){$2}, 1);}
     ;
     
     expression: assignment_expression {$$ = $1;}
@@ -223,17 +224,17 @@ tree parserTree;
     | assignment_expression COMMA expression {$$ = new node(",", 0, new(node*[2]){$1, $3}, 2);}
     ;
 
-    assignment_expression: ID ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID MUL_ASSIGN expression {$$ = new node("*=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID DIV_ASSIGN expression {$$ = new node("/=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID MOD_ASSIGN expression {$$ = new node("%=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID ADD_ASSIGN expression {$$ = new node("+=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID SUB_ASSIGN expression {$$ = new node("-=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID LSHIFT_ASSIGN expression {$$ = new node(">>=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID RSHIFT_ASSIGN expression {$$ = new node("<<=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID AND_ASSIGN expression {$$ = new node("&=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID OR_ASSIGN expression {$$ = new node("|=", 0, new(node*[2]){$1, $3}, 2);}
-    | ID XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}  
+    assignment_expression: var ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
+    | var MUL_ASSIGN expression {$$ = new node("*=", 0, new(node*[2]){$1, $3}, 2);}
+    | var DIV_ASSIGN expression {$$ = new node("/=", 0, new(node*[2]){$1, $3}, 2);}
+    | var MOD_ASSIGN expression {$$ = new node("%=", 0, new(node*[2]){$1, $3}, 2);}
+    | var ADD_ASSIGN expression {$$ = new node("+=", 0, new(node*[2]){$1, $3}, 2);}
+    | var SUB_ASSIGN expression {$$ = new node("-=", 0, new(node*[2]){$1, $3}, 2);}
+    | var LSHIFT_ASSIGN expression {$$ = new node(">>=", 0, new(node*[2]){$1, $3}, 2);}
+    | var RSHIFT_ASSIGN expression {$$ = new node("<<=", 0, new(node*[2]){$1, $3}, 2);}
+    | var AND_ASSIGN expression {$$ = new node("&=", 0, new(node*[2]){$1, $3}, 2);}
+    | var OR_ASSIGN expression {$$ = new node("|=", 0, new(node*[2]){$1, $3}, 2);}
+    | var XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}  
     ;
     
     logical_or_expression: logical_and_expression {$$ = $1;}
@@ -290,18 +291,22 @@ tree parserTree;
     ;
     
     unary_expression: declaration_expression {$$ = $1;}
-    | INC ID {$$ = new node("l_++", 0, new(node*[1]){$2}, 1);}
-    | DEC ID {$$ = new node("l_--", 0, new(node*[1]){$2}, 1);}
-    | ID INC {$$ = new node("r_++", 0, new(node*[1]){$1}, 1);}
-    | ID DEC {$$ = new node("r_--", 0, new(node*[1]){$1}, 1);}
-    | LNOT ID {$$ = new node("!", 0, new(node*[1]){$2}, 1);}
+    | INC var {$$ = new node("l_++", 0, new(node*[1]){$2}, 1);}
+    | DEC var {$$ = new node("l_--", 0, new(node*[1]){$2}, 1);}
+    | var INC {$$ = new node("r_++", 0, new(node*[1]){$1}, 1);}
+    | var DEC {$$ = new node("r_--", 0, new(node*[1]){$1}, 1);}
+    | LNOT var {$$ = new node("!", 0, new(node*[1]){$2}, 1);}
     | LNOT parenthesized_expression {$$ = new node("!", 0, new(node*[1]){$2}, 1);}
     ;
 
     declaration_expression: parenthesized_expression {$$ = $1;}
     | NUMBER {$$ = $1;}
-    | ID {$$ = $1;}
+    | var {$$ = $1;}
     | STR {$$ = $1;}
+    ;
+
+    var: ID {$$ = $1;}
+    | ID POINT ID {$$ = new node("struct_var", 0, new(node*[2]){$1, $3}, 2);}
     ;
 
     parenthesized_expression: LP expression RP {$$ = $2;}
