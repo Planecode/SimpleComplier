@@ -97,8 +97,14 @@ tree parserTree;
     define_var:  var_type define_var_assign {$$ = new node("define_var", 0, new(node*[2]){$1, $2}, 2);}
     ;
     define_var_assign: var ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
+    | var ASSIGN LBRACE array_assign RBRACE {$$ = new node("=", 0, new(node*[2]){$1, $4}, 2);}
     ;
-    
+    array_assign: NUMBER {$$ = new node("array_assign", 0, new(node*[1]){$1}, 1);}
+    | array_assign COMMA NUMBER {
+        int cNodeLength = 0;
+        if($1 != 0){cNodeLength = $1->cNodeLength;}
+        $$ = new node("array_assign", 0, parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
+    ;
     declaration_function: var_type ID LP paramester_list RP LBRACE statement RBRACE {
         $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
     ;
@@ -304,10 +310,13 @@ tree parserTree;
     | STR {$$ = $1;}
     ;
 
-    var: ID dimension_list {
+    var: ID {$$ = $1;}
+    | ID dimension_list {
         if($2 == 0) {$$ = $1;}
         else {$$ = new node("array_id", 0, new(node*[2]){$1, $2}, 2);}}
     | ID POINT ID {$$ = new node("struct_var", 0, new(node*[2]){$1, $3}, 2);}
+    | pointer {$$ = new node("pointer", 0, new(node*[1]){$1}, 1);}
+    | muti_pointer {$$ = new node("pointer", 0, new(node*[1]){$1}, 1);}
     ;
 
     dimension_list: dimension dimension_list {
@@ -320,6 +329,15 @@ tree parserTree;
     dimension: LSBRACKET RSBRACKET {$$ = new node("[]", 0, 0, 0);}
     | LSBRACKET NUMBER RSBRACKET {$$ = $2;}
     | LSBRACKET ID RSBRACKET {$$ = $2;}
+    ;
+
+    muti_pointer: MUL pointer {$$ = $2;}
+    | MUL muti_pointer {$$ = $2;}
+    | MUL LP muti_pointer RP {$$ = $3;}
+    ;
+
+    pointer: MUL var {$$ = $2;}
+    | MUL LP var RP {$$ = $3;}
     ;
 
     parenthesized_expression: LP expression RP {$$ = $2;}
