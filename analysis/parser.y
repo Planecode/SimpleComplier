@@ -91,40 +91,13 @@ tree parserTree;
         if($1 != 0){cNodeLength = $1->cNodeLength;}
         $$ = new node("init_var", 0, parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
     ;
-    declaration_var: var_type ID {
+    declaration_var: var_type var {
         $$ = new node("declaration_var", 0, new(node*[2]){$1, $2}, 2);}
     ;
     define_var:  var_type define_var_assign {$$ = new node("define_var", 0, new(node*[2]){$1, $2}, 2);}
     ;
-    define_var_assign: ID ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
+    define_var_assign: var ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
     ;
-    
-    array: ID dimension_size {
-        $$ = new node("array", 0, new(node*[2]){$1, $2}, 2);}
-    | ID dimension_size ASSIGN LBRACE array_assign RBRACE {
-        $$ = new node("array", 0, new(node*[3]){$1, $2, $5}, 3);}
-    ;
-
-    dimension_size: dimension dimension_size {
-        int cNodeLength = 0;
-        if($2 != 0){cNodeLength = $2->cNodeLength;}
-        $$ = new node("dimension_size", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
-    | dimension {$$ = new node("dimension_size", 0, new(node*[1]){$1}, 1);}
-    | {$$ = 0;}
-    ;
-
-    dimension: LSBRACKET RSBRACKET {$$ = new node("change", 0, 0, 0);}
-    | LSBRACKET NUMBER RSBRACKET {$$ = $2;}
-    | LSBRACKET ID RSBRACKET {$$ = $2;}
-    ;
-
-    array_assign: NUMBER COMMA array_assign {
-        int cNodeLength = 0;
-        if($3 != 0){cNodeLength = $3->cNodeLength;}
-        $$ = new node("array_assign", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | NUMBER {$$ = new node("array_assign", 0, new(node*[1]){$1}, 1);}
-    ;
-
     
     declaration_function: var_type ID LP paramester_list RP LBRACE statement RBRACE {
         $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
@@ -262,12 +235,6 @@ tree parserTree;
     | var OR_ASSIGN expression {$$ = new node("|=", 0, new(node*[2]){$1, $3}, 2);}
     | var XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}  
     ;
-
-    variable: ID {$$ = $1;}
-    | ID LSBRACKET declaration_expression RSBRACKET {
-        $$ = new node("[]", 0, new(node*[2]){$1, $3}, 2);}
-    ;
-
     
     logical_or_expression: logical_and_expression {$$ = $1;}
     | logical_or_expression OR logical_and_expression {$$ = new node("||", 0, new(node*[2]){$1, $3}, 2);}
@@ -337,8 +304,22 @@ tree parserTree;
     | STR {$$ = $1;}
     ;
 
-    var: ID {$$ = $1;}
+    var: ID dimension_list {
+        if($2 == 0) {$$ = $1;}
+        else {$$ = new node("array_id", 0, new(node*[2]){$1, $2}, 2);}}
     | ID POINT ID {$$ = new node("struct_var", 0, new(node*[2]){$1, $3}, 2);}
+    ;
+
+    dimension_list: dimension dimension_list {
+        int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("dimension_list", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
+    | {$$ = 0;}
+    ;
+
+    dimension: LSBRACKET RSBRACKET {$$ = new node("[]", 0, 0, 0);}
+    | LSBRACKET NUMBER RSBRACKET {$$ = $2;}
+    | LSBRACKET ID RSBRACKET {$$ = $2;}
     ;
 
     parenthesized_expression: LP expression RP {$$ = $2;}
