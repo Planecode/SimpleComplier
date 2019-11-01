@@ -98,7 +98,34 @@ tree parserTree;
     ;
     define_var_assign: ID ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
     ;
+    
+    array: ID dimension_size {
+        $$ = new node("array", 0, new(node*[2]){$1, $2}, 2);}
+    | ID dimension_size ASSIGN LBRACE array_assign RBRACE {
+        $$ = new node("array", 0, new(node*[3]){$1, $2, $5}, 3);}
+    ;
 
+    dimension_size: dimension dimension_size {
+        int cNodeLength = 0;
+        if($2 != 0){cNodeLength = $2->cNodeLength;}
+        $$ = new node("dimension_size", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
+    | dimension {$$ = new node("dimension_size", 0, new(node*[1]){$1}, 1);}
+    | {$$ = 0;}
+    ;
+
+    dimension: LSBRACKET RSBRACKET {$$ = new node("change", 0, 0, 0);}
+    | LSBRACKET NUMBER RSBRACKET {$$ = $2;}
+    | LSBRACKET ID RSBRACKET {$$ = $2;}
+    ;
+
+    array_assign: NUMBER COMMA array_assign {
+        int cNodeLength = 0;
+        if($3 != 0){cNodeLength = $3->cNodeLength;}
+        $$ = new node("array_assign", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
+    | NUMBER {$$ = new node("array_assign", 0, new(node*[1]){$1}, 1);}
+    ;
+
+    
     declaration_function: var_type ID LP paramester_list RP LBRACE statement RBRACE {
         $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
     ;
@@ -216,7 +243,7 @@ tree parserTree;
     | VOID {$$ = new node("void", 0, 0, 0);}
     | STRUCT ID {$$ = new node("struct", 0, new(node*[1]){$2}, 1);}
     ;
-    
+
     expression: assignment_expression {$$ = $1;}
     | logical_or_expression {$$ = $1;}
     | logical_or_expression COMMA expression {$$ = new node(",", 0, new(node*[2]){$1, $3}, 2);}
@@ -235,6 +262,12 @@ tree parserTree;
     | var OR_ASSIGN expression {$$ = new node("|=", 0, new(node*[2]){$1, $3}, 2);}
     | var XOR_ASSIGN expression {$$ = new node("^=", 0, new(node*[2]){$1, $3}, 2);}  
     ;
+
+    variable: ID {$$ = $1;}
+    | ID LSBRACKET declaration_expression RSBRACKET {
+        $$ = new node("[]", 0, new(node*[2]){$1, $3}, 2);}
+    ;
+
     
     logical_or_expression: logical_and_expression {$$ = $1;}
     | logical_or_expression OR logical_and_expression {$$ = new node("||", 0, new(node*[2]){$1, $3}, 2);}
@@ -338,4 +371,3 @@ int main(void)
     parserTree.print(parserTree.root, "");
     return n;
 }
-
