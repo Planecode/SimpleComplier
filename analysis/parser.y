@@ -146,13 +146,10 @@ tree parserTree;
     | declaration_struct SEMICOLON {$$ = $1;}
     ;
 
-    function_expression: function_key_word expression {$$ = new node("function_expression", 0, new(node*[2]){$1, $2}, 2);}
-    ;
-
-    function_key_word: RETURN {$$ = new node("RETURN", 0, 0, 0);}
-    | CONTINUE {$$ = new node("CONTINUE", 0, 0, 0);}
+    function_expression: CONTINUE {$$ = new node("CONTINUE", 0, 0, 0);}
     | BREAK {$$ = new node("BREAK", 0, 0, 0);}
-    | NEW {$$ = new node("NEW", 0, 0, 0);}
+    | RETURN {$$ = new node("RETURN", 0, 0, 0);}
+    | RETURN expression {$$ = new node("RETURN", 0, new(node*[1]){$2}, 1);}
     ;
 
     conditional_statement: if_statement {
@@ -219,8 +216,27 @@ tree parserTree;
 
     expression: assignment_expression {$$ = $1;}
     | logical_or_expression {$$ = $1;}
+    | array_expression {$$ = $1;}
+    | function_call_expression {$$ = $1;}
     | logical_or_expression COMMA expression {$$ = new node(",", 0, new(node*[2]){$1, $3}, 2);}
     | assignment_expression COMMA expression {$$ = new node(",", 0, new(node*[2]){$1, $3}, 2);}
+    ;
+
+    function_call_expression: ID LP argv_body RP {$$ = new node("function_call_expression", 0, new(node*[2]){$1, $3}, 2);}
+    ;
+
+    array_expression: LBRACE argv_body RBRACE {$$ = new node("array_expression", 0, new(node*[1]){$2}, 1);}
+    ;
+
+    argv_body: argv_list {$$ = $1;}
+    | {$$ = 0;}
+    ;
+
+    argv_list: declaration_expression COMMA argv_list {
+        int cNodeLength = 0;
+        if($3 != 0){cNodeLength = $3->cNodeLength;}
+        $$ = new node("argv_list", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
+    | declaration_expression {$$ = new node("argv_list", 0, new(node*[1]){$2}, 1);}
     ;
 
     assignment_expression: var ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
