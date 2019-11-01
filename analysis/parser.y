@@ -23,7 +23,7 @@ tree parserTree;
 %token COMMA POINT COLON
 %token NUMBER ERROR ID STR
 %token VOID IF ELSE FOR SWITCH MAIN CONTINUE BREAK CASE DEFAULT WHILE DO NEW RETURN
-%token INT DOUBLE FLOAT STRING LONG SHORT BYTE 
+%token INT DOUBLE FLOAT STRING LONG SHORT BYTE STRUCT
 
 /////////////////////////////////////////////////////////////////////////////
 // declarations section
@@ -71,28 +71,35 @@ tree parserTree;
     | {$$ = 0;}
     ;
     declaration_block: main_function {$$ = $1;}
-    | declaration_var SEMICOLON {$$ = $1;}
+    | init_var SEMICOLON {$$ = $1;}
+    | declaration_struct SEMICOLON {$$ = $1;}
     | declaration_function {$$ = $1;}
     ;
     
     main_function: var_type MAIN LP paramester_list RP LBRACE statement RBRACE {
         $$ = new node("main_function", 0, new(node*[3]){$1, $4, $7}, 3);}
     ;
+
+    init_var: declaration_var {$$ = $1;}
+    | define_var {$$ = $1;}
+    | init_var COMMA ID {
+        int cNodeLength = 0;
+        if($1 != 0){cNodeLength = $1->cNodeLength;}
+        $$ = new node("init_var", 0, parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
+    | init_var COMMA assignment_expression {
+        int cNodeLength = 0;
+        if($1 != 0){cNodeLength = $1->cNodeLength;}
+        $$ = new node("init_var", 0, parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
+    ;
     declaration_var: var_type ID {
         $$ = new node("declaration_var", 0, new(node*[2]){$1, $2}, 2);}
-    | var_type assignment_expression {
+    ;
+    define_var: var_type assignment_expression {
         int cNodeLength = 0;
         if($2 != 0){cNodeLength = $2->cNodeLength;}
-        $$ = new node("declaration_var", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
-    | declaration_var COMMA ID {
-        int cNodeLength = 0;
-        if($1 != 0){cNodeLength = $1->cNodeLength;}
-        $$ = new node("declaration_var", 0, parserTree.unit_node($3, $1), cNodeLength + 1);}
-    | declaration_var COMMA assignment_expression {
-        int cNodeLength = 0;
-        if($1 != 0){cNodeLength = $1->cNodeLength;}
-        $$ = new node("declaration_var", 0, parserTree.unit_node($3, $1), cNodeLength + 1);}
+        $$ = new node("define_var", 0, parserTree.unit_node($1, $2), cNodeLength + 1);}
     ;
+
     declaration_function: var_type ID LP paramester_list RP LBRACE statement RBRACE {
         $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
     ;
@@ -109,6 +116,16 @@ tree parserTree;
         $$ = new node("paramester", 0, new(node*[2]){$1, $2}, 2);}
     ;
 
+    declaration_struct: STRUCT ID LBRACE declaration_var_list RBRACE {
+        $$ = new node("declaration_struct", 0, new(node*[2]){$2, $4}, 2);}
+    ;
+
+    declaration_var_list: declaration_var SEMICOLON declaration_var_list {
+        int cNodeLength = 0;
+        if($3 != 0){cNodeLength = $3->cNodeLength;}
+        $$ = new node("declaration_var_list", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
+    | {$$ = 0;}
+    ;
     statement: single_statement statement {
         int cNodeLength = 0;
         if($2 != 0){cNodeLength = $2->cNodeLength;}
@@ -124,9 +141,10 @@ tree parserTree;
     | loop_statement {$$ = $1;}
     ;
 
-    single_statement: declaration_var SEMICOLON {$$ = $1;}
+    single_statement: init_var SEMICOLON {$$ = $1;}
     | expression SEMICOLON {$$ = $1;}
     | function_expression SEMICOLON {$$ = $1;}
+    | declaration_struct SEMICOLON {$$ = $1;}
     ;
 
     function_expression: function_key_word expression {$$ = new node("function_expression", 0, new(node*[2]){$1, $2}, 2);}

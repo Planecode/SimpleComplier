@@ -70,18 +70,40 @@ public:
         }
         return;
     }
-    UnitNode unit_node(node* singleNode, node* mutiNode)
+    UnitNode unit_node(node* firstNode, node* secondNode, int mark=0)
     {
+        node* singleNode = 0;
+        node* mutiNode = 0;
+        switch(mark)
+        {
+            case 0: mutiNode = secondNode;
+            singleNode = firstNode;
+            break;
+            case 1: mutiNode = firstNode;
+            singleNode = secondNode;
+            break;
+        }
         int cNodeLength = 0;
         if(mutiNode != 0)
         {
             cNodeLength = mutiNode->cNodeLength;
         }
         UnitNode newCNode = new (node*[cNodeLength + 1]){};
-        newCNode[0] = singleNode;
-        for(int i =0; i < cNodeLength; i++)
+        if(mark == 0)
         {
-            newCNode[i + 1] = mutiNode->cNode[i];
+            newCNode[0] = singleNode;
+            for(int i =0; i < cNodeLength; i++)
+            {
+                newCNode[i + 1] = mutiNode->cNode[i];
+            }
+        }
+        else if(mark == 1)
+        {
+            for(int i =0; i < cNodeLength; i++)
+            {
+                newCNode[i] = mutiNode->cNode[i];
+            }
+            newCNode[cNodeLength] = singleNode;
         }
         if(mutiNode != 0)
         {

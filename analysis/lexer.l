@@ -21,7 +21,7 @@ int get_token(char* yytext);
 map<string, int> idMap;
 map<string, int> wordMap{{"void", VOID}, {"int", INT}, {"double", DOUBLE}, {"float", FLOAT}, {"string", STRING}, {"long", LONG}, 
 {"short", SHORT}, {"byte", BYTE}, {"if", IF}, {"else", ELSE}, {"for", FOR}, {"switch", SWITCH}, {"main",MAIN}, {"continue", CONTINUE}, 
-{"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"do", DO}, {"new", NEW}, {"return", RETURN}};
+{"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"do", DO}, {"new", NEW}, {"return", RETURN}, {"struct", STRUCT}};
 %}
 
 /////////////////////////////////////////////////////////////////////////////
