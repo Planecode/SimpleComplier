@@ -97,13 +97,6 @@ tree parserTree;
     define_var:  var_type define_var_assign {$$ = new node("define_var", 0, new(node*[2]){$1, $2}, 2);}
     ;
     define_var_assign: var ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
-    | var ASSIGN LBRACE array_assign RBRACE {$$ = new node("=", 0, new(node*[2]){$1, $4}, 2);}
-    ;
-    array_assign: NUMBER {$$ = new node("array_assign", 0, new(node*[1]){$1}, 1);}
-    | array_assign COMMA NUMBER {
-        int cNodeLength = 0;
-        if($1 != 0){cNodeLength = $1->cNodeLength;}
-        $$ = new node("array_assign", 0, parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
     ;
     declaration_function: var_type ID LP paramester_list RP LBRACE statement RBRACE {
         $$ = new node("declaration_function", 0, new(node*[4]){$1, $2, $4, $7}, 4);}
@@ -242,7 +235,7 @@ tree parserTree;
         int cNodeLength = 0;
         if($3 != 0){cNodeLength = $3->cNodeLength;}
         $$ = new node("argv_list", 0, parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | declaration_expression {$$ = new node("argv_list", 0, new(node*[1]){$2}, 1);}
+    | declaration_expression {$$ = new node("argv_list", 0, new(node*[1]){$1}, 1);}
     ;
 
     assignment_expression: var ASSIGN expression {$$ = new node("=", 0, new(node*[2]){$1, $3}, 2);}
