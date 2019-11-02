@@ -319,12 +319,10 @@ tree parserTree;
     | STR {$$ = $1;}
     ;
 
-    var: ID {$$ = $1;}
-    | ID dimension_list {
+    var: ID dimension_list {
         if($2 == 0) {$$ = $1;}
         else {$$ = new node("array_id", 0, new(node*[2]){$1, $2}, 2);}}
     | ID POINT ID {$$ = new node("struct_var", 0, new(node*[2]){$1, $3}, 2);}
-    | pointer {$$ = new node("pointer", 0, new(node*[1]){$1}, 1);}
     | muti_pointer {$$ = new node("pointer", 0, new(node*[1]){$1}, 1);}
     ;
 
@@ -340,7 +338,7 @@ tree parserTree;
     | LSBRACKET ID RSBRACKET {$$ = $2;}
     ;
 
-    muti_pointer: MUL pointer {$$ = $2;}
+    muti_pointer: pointer {$$ = $1;}
     | MUL muti_pointer {$$ = $2;}
     | MUL LP muti_pointer RP {$$ = $3;}
     ;
