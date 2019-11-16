@@ -361,7 +361,7 @@ void parser::yyerror(const char YYFAR* text)
 int main(void)
 {
     string sFile;
-    cin >> sFile;
+    getline(cin, sFile);
     lexer.yyin = new std::ifstream(sFile);
     int n = 1;
     if (parser.yycreate(&lexer)) {
