@@ -14,11 +14,10 @@ ParserWizard generated Lex file.
 #include "tree.h"
 extern int yylval;
 using namespace std;
-int install_id(char* yytext);
-int install_num(char* yytext);
-int install_str(char* yytext);
+string install_id(char* yytext);
+string install_str(char* yytext);
 int get_token(char* yytext);
-map<string, int> idMap;
+map<string, IdValue *> idMap;
 map<string, int> wordMap{{"void", VOID}, {"int", INT}, {"double", DOUBLE}, {"float", FLOAT}, {"string", STRING}, {"long", LONG}, 
 {"short", SHORT}, {"byte", BYTE}, {"if", IF}, {"else", ELSE}, {"for", FOR}, {"switch", SWITCH}, {"main",MAIN}, {"continue", CONTINUE}, 
 {"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"do", DO}, {"new", NEW}, {"return", RETURN}, {"struct", STRUCT}};
@@ -167,9 +166,9 @@ error ([_a-zA-Z0-9]*)|.
 {note} {}
 
 {delim} {}
-{number} {string value = yytext; yylval = new node("number: " + value, 0, 0, 0); return NUMBER;}
-{id} {string value = yytext; int token = get_token(yytext);if(token == ID){yylval = new node("id: " + value, install_id(yytext), 0, 0);}return token;}
-{str} {yylval=new node("str", install_str(yytext), 0, 0); return STR;}
+{number} {string value = yytext; yylval = new node("number", 0, 0); yylval->value = value; return NUMBER;}
+{id} {string value = yytext; int token = get_token(yytext);if(token == ID){yylval = new node("id", 0, 0); yylval->value = install_id(yytext);}return token;}
+{str} {yylval=new node("str", 0, 0); yylval->value = install_str(yytext); return STR;}
 {error} {return ERROR;}
 
 %%
@@ -187,23 +186,23 @@ int get_token(char* yytext)
     return ID;
 }
 
-int install_id(char* yytext)
+string install_id(char* yytext)
 {
     string id = yytext;
     if(idMap.count(id) == 0)
     {
-        idMap[id] = int(new string(yytext));
+        idMap[id] = new IdValue();
     }
-    return idMap[id];
+    return id;
 }
 
-int install_str(char* yytext)
+string install_str(char* yytext)
 {
     string str = yytext;
     str = str.substr(1, str.length()-2);
     if(idMap.count(str) == 0)
-        idMap[str] = int(new string(yytext));
-    return idMap[str];
+        idMap[str] = new IdValue();
+    return str;
 }
 int lexer::yygetchar()
 {

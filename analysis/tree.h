@@ -5,28 +5,50 @@
 #include <string>
 
 using namespace std;
+
+class IdValue
+{
+    public:
+    string type;
+    int width;
+    IdValue(): type("None"), width(0)
+    {
+
+    }
+    ~IdValue()
+    {
+
+    }
+    void allocate(string type_name)
+    {
+        this->type = type_name;
+        if(type_name == "int")
+        {
+            width = 4;
+            return;
+        }
+        if(type_name == "double")
+        {
+            width = 8;
+            return;
+        }
+    }
+};
+
 class node
 {
+    public:
     string description;
-    int value;
-public:
+    string value;
     node *(*cNode);
     int cNodeLength;
-    node(string description, int value, node *(*cNode), int cNodeLength):description(description), value(value), cNode(cNode), cNodeLength(cNodeLength)
+    node(string description, node *(*cNode), int cNodeLength):description(description), value(""), cNode(cNode), cNodeLength(cNodeLength)
     {
 
     }
     ~node()
     {
 
-    }
-    string getDescription()
-    {
-        return description;
-    }
-    int getValue()
-    {
-        return value;
     }
 };
 typedef node* (*UnitNode);
@@ -58,11 +80,7 @@ public:
             cout << "|---";
             block += "|   ";
         }
-        cout << " " << nowNode->getDescription() << " ";
-        if(nowNode->getValue() != 0)
-        {
-            cout << nowNode->getValue();
-        }
+        cout << " " << nowNode->description << " " << nowNode->value;
         cout << endl;
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
