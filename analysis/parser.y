@@ -392,7 +392,15 @@ int main(void)
             n = parser.yyparse();
         }
     }
-    parserTree.print(parserTree.root, "");
-    parserList.print();
+    string msg = parserTree.checkTree(parserTree.root);
+    if(msg == "OK")
+    {
+        parserTree.print(parserTree.root, "");
+        parserList.print();
+    }
+    else
+    {
+        cout<< msg << endl;
+    }
     return n;
 }

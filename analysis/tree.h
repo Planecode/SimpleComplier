@@ -88,6 +88,176 @@ public:
         }
         return;
     }
+    
+    string checkTree(node* nowNode)
+    {
+        map<string, string> hasValue;      //  define and assigned
+        map<string, string> declaration;   //  define but may not assigned
+        map<string, string>::iterator it;
+        string msg = "OK";
+        
+        if(nowNode == 0)
+        {
+            return msg;
+        }
+        if(nowNode->description == "define_var") //  define and assigned
+        {
+            hasValue[nowNode->cNode[1]->value] = nowNode->cNode[0]->description;
+            //cout<<nowNode->cNode[1]->value<<"   "<<hasValue[nowNode->cNode[1]->value]<<endl;
+            return msg;
+        }
+        else if (nowNode->description == "declaration_var")   //  define but may not assigned
+        {
+            declaration[nowNode->cNode[1]->value] = nowNode->cNode[0]->description;
+            return msg;
+        }
+        else if (nowNode->description == "declaration_struct")
+        {
+            string name = nowNode->cNode[0]->value;
+            node* var_list = nowNode->cNode[1];
+            for (int i = 0; i < var_list->cNodeLength; i++)
+            {
+				node* var = var_list->cNode[i];
+				declaration[name + "." + var->cNode[1]->value] = var->cNode[0]->description;
+            }
+            return msg;
+            
+        }
+        else if(nowNode->description == "=")    // confirm  whether assigned
+        {
+            if(nowNode->cNode[0]->description == "id")
+            {
+                string name = nowNode->cNode[0]->value;
+				it = hasValue.find(name);
+                //cout<<name<<endl;
+                //cout<<hasValue[name]<<endl;
+				if (it != hasValue.end())
+				{
+					return msg;
+				}
+				it = declaration.find(name);
+				if (it != declaration.end())
+				{
+					hasValue[name] = declaration[name];
+				}
+				else
+				{
+					return "not define " + name;
+				}
+            }
+			else if(nowNode->cNode[0]->description == "struct_var")
+			{
+
+				string name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
+				it = hasValue.find(name);
+				if (it != hasValue.end())
+				{
+					return msg;
+				}
+				it = declaration.find(name);
+				if (it != declaration.end())
+				{
+					hasValue[name] = declaration[name];
+                    return msg;
+				}
+				else
+				{
+					return "not define " + name;
+				}
+
+			}
+        }
+        
+		else if (nowNode->description == "+" || nowNode->description == "-" || nowNode->description == "*" || nowNode->description == "/" || nowNode->description == "%" 
+        || nowNode->description == "^" || nowNode->description == "|" || nowNode->description == "&" || nowNode->description == "||" || nowNode->description == "&&" 
+		||nowNode->description == "+=" || nowNode->description == "-=" || nowNode->description == "*=" || nowNode->description == "/=" || nowNode->description == ">>=" 
+        || nowNode->description == "<<=" || nowNode->description == "&=" || nowNode->description == "|=" || nowNode->description == "^="|| nowNode->description == "==" 
+        ||nowNode->description ==  "!=" || nowNode->description == ">" || nowNode->description == ">=" || nowNode->description == "<" || nowNode->description == "<=" 
+        || nowNode->description == "<<" || nowNode->description == ">>")           // check whether var is assigned
+		{
+			if (nowNode->cNode[0]->description == "id")
+			{
+				string name = nowNode->cNode[0]->value;
+                it = hasValue.find(name);
+                if (it == hasValue.end())
+                {
+                    it = declaration.find(name);
+                    if (it == declaration.end())
+                    {
+                        return "not define " + name;
+                    }
+                    else
+                    {
+                        return name + " is defined but not assigned";
+                    }
+                }
+			}
+			else if (nowNode->cNode[0]->description == "struct_var")
+			{
+				string name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
+				it = hasValue.find(name);
+                if (it == hasValue.end())
+                {
+                    it = declaration.find(name);
+                    if (it == declaration.end())
+                    {
+                        return "not define " + name;
+                    }
+                    else
+                    {
+                        return name + " is defined but not assigned";
+                    }
+                }
+			}
+			else if (nowNode->cNode[1]->description == "id")
+			{
+				string name = nowNode->cNode[1]->value;
+				it = hasValue.find(name);
+                if (it == hasValue.end())
+                {
+                    it = declaration.find(name);
+                    if (it == declaration.end())
+                    {
+                        return "not define " + name;
+                    }
+                    else
+                    {
+                        return name + " is defined but not assigned";
+                    }
+                }
+			}
+			else if (nowNode->cNode[1]->description == "struct_var")
+			{
+				string name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
+				it = hasValue.find(name);
+                if (it == hasValue.end())
+                {
+                    it = declaration.find(name);
+                    if (it == declaration.end())
+                    {
+                        return "not define " + name;
+                    }
+                    else
+                    {
+                        return name + " is defined but not assigned";
+                    }
+                }
+			}
+		}
+        cout<< nowNode->description << " " << nowNode->value << endl;
+		for (int i = 0; i < nowNode->cNodeLength; i++)
+		{
+            
+			msg = checkTree(nowNode->cNode[i]);
+			if (msg != "OK")
+			{
+				return msg;
+			}
+            
+		}
+        return msg;
+
+    }
     UnitNode unit_node(node* firstNode, node* secondNode, int mark=0)
     {
         node* singleNode = 0;
