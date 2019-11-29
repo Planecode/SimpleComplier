@@ -3,8 +3,11 @@
 #include <iostream>
 #include <string>
 #include "tree.h"
+#include <set>
 
 using namespace std;
+
+set<string> avoidSet = {"id", "number", "str",  "int", "init_var"};
 
 class ThreeAddress
 {
@@ -79,6 +82,48 @@ class List
             cout << endl;
             p = p->next;
         }
+    }
+    void generate(node *root)
+    {
+        for(int i = 0; i < root->cNodeLength; i++)
+        {
+            node *cNode = root->cNode[i];
+            if(cNode->description == "main_function")
+                generate_main(cNode);
+        }
+    }
+    void generate_main(node *nowNode)
+    {
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            if(cNode == 0)
+                continue;
+            if(cNode->description == "statement")
+                generate_statement(cNode);
+        }
+    }
+    void generate_statement(node *nowNode)
+    {
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            generate_calc(cNode);
+        }
+    }
+    void generate_calc(node *nowNode)
+    {
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            generate_calc(cNode);
+        }
+        if(avoidSet.count(nowNode->description))
+            return;
+        if(nowNode->description == "=")
+            push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
+        else
+            push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
     }
 };
 #endif // LIST_H_INCLUDED
