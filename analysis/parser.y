@@ -90,20 +90,19 @@ extern map<string, IdValue *> idMap;
         int cNodeLength = 0;
         if($1 != 0){cNodeLength = $1->cNodeLength;}
         $$ = new node("init_var", parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
-    | init_var COMMA var ASSIGN expression {
+    | init_var COMMA assignment_expression {
         int cNodeLength = 0;
         if($1 != 0){cNodeLength = $1->cNodeLength;}
         $$ = new node("init_var", parserTree.unit_node($1, $3, 1), cNodeLength + 1);}
     ;
     declaration_var: var_type var {
-        $$ = new node("declaration_var", new(node*[2]){$1, $2}, 2);
+        $$ = new node("init_var", new(node*[2]){$1, $2}, 2);
         idMap[$2->value]->allocate($1->description);
         }
     ;
-    define_var:  var_type var ASSIGN expression {
-        $$ = new node("define_var", new(node*[2]){$1, $2}, 2);
-        idMap[$2->value]->allocate($1->description);
-        parserList.push(new ThreeAddress("=", $4, 0, $2));
+    define_var:  var_type assignment_expression {
+        $$ = new node("init_var", new(node*[2]){$1, $2}, 2);
+        idMap[$2->cNode[0]->value]->allocate($1->description);
         }
     ;
 
@@ -249,7 +248,7 @@ extern map<string, IdValue *> idMap;
 
     assignment_expression: var ASSIGN expression {
         $$ = new node("=", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("=", $3, 0, $1));}
+        }
     | var MUL_ASSIGN expression {$$ = new node("*=", new(node*[2]){$1, $3}, 2);}
     | var DIV_ASSIGN expression {$$ = new node("/=", new(node*[2]){$1, $3}, 2);}
     | var MOD_ASSIGN expression {$$ = new node("%=", new(node*[2]){$1, $3}, 2);}
@@ -299,28 +298,28 @@ extern map<string, IdValue *> idMap;
     additive_expression: multiplicative_expression {$$ = $1;}
     | additive_expression ADD multiplicative_expression {
         $$ = new node("+", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("+", $1, $3, $$));}
+        }
     | additive_expression SUB multiplicative_expression {
         $$ = new node("-", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("-", $1, $3, $$));}
+        }
     ;
     
     multiplicative_expression: power_expression {$$ = $1;}
     | multiplicative_expression MUL power_expression {
         $$ = new node("*", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("*", $1, $3, $$));}
+        }
     | multiplicative_expression DIV power_expression {
         $$ = new node("/", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("/", $1, $3, $$));}
+        }
     | multiplicative_expression MOD power_expression {
         $$ = new node("%", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("%", $1, $3, $$));}
+        }
     ;
     
     power_expression: cast_expression {$$ = $1;}
     | power_expression POW cast_expression {
         $$ = new node("^", new(node*[2]){$1, $3}, 2);
-        parserList.push(new ThreeAddress("^", $1, $3, $$));}
+        }
     ;
     
     cast_expression: unary_expression {$$ = $1;}
@@ -396,11 +395,13 @@ int main(void)
     if(msg == "OK")
     {
         parserTree.print(parserTree.root, "");
+        parserList.generate(parserTree.root);
         parserList.print();
     }
     else
     {
         cout<< msg << endl;
     }
+
     return n;
 }
