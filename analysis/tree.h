@@ -52,6 +52,8 @@ class tree
 {
 public:
     node *root;
+    map<string, string> hasValue;    //  define and assigned
+    map<string, string> declaration; //  define but may not assigned
     tree() : root(0)
     {
     }
@@ -85,8 +87,6 @@ public:
 
     string checkTree(node *nowNode)
     {
-        map<string, string> hasValue;    //  define and assigned
-        map<string, string> declaration; //  define but may not assigned
         map<string, string>::iterator it;
         string msg = "OK";
 
@@ -97,17 +97,27 @@ public:
         if (nowNode->description == "define_var") //  define and assigned
         {
             hasValue[nowNode->cNode[1]->value] = nowNode->cNode[0]->description;
-            //cout<<nowNode->cNode[1]->value<<"   "<<hasValue[nowNode->cNode[1]->value]<<endl;
             return msg;
         }
         else if (nowNode->description == "declaration_var") //  define but may not assigned
         {
-            declaration[nowNode->cNode[1]->value] = nowNode->cNode[0]->description;
-            return msg;
+            if (nowNode->cNode[0]->description != "struct")
+            {
+                declaration[nowNode->cNode[1]->value] = nowNode->cNode[0]->description;
+                return msg;
+            }
+            else
+            {
+                string struct_name = nowNode->cNode[0]->cNode[0]->value;
+                string name = nowNode->cNode[1]->value;
+                declaration[name] = struct_name;
+                return msg;
+            }
         }
         else if (nowNode->description == "declaration_struct")
         {
             string name = nowNode->cNode[0]->value;
+            declaration[name] = nowNode->cNode[0]->description;
             node *var_list = nowNode->cNode[1];
             for (int i = 0; i < var_list->cNodeLength; i++)
             {
@@ -122,40 +132,54 @@ public:
             {
                 string name = nowNode->cNode[0]->value;
                 it = hasValue.find(name);
-                //cout<<name<<endl;
-                //cout<<hasValue[name]<<endl;
                 if (it != hasValue.end())
                 {
-                    return msg;
-                }
-                it = declaration.find(name);
-                if (it != declaration.end())
-                {
-                    hasValue[name] = declaration[name];
                 }
                 else
                 {
-                    return "not define " + name;
+                    it = declaration.find(name);
+                    if (it != declaration.end())
+                    {
+                        hasValue[name] = declaration[name];
+                    }
+                    else
+                    {
+                        return "not define " + name;
+                    }
                 }
             }
             else if (nowNode->cNode[0]->description == "struct_var")
             {
 
-                string name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
-                it = hasValue.find(name);
-                if (it != hasValue.end())
-                {
-                    return msg;
-                }
-                it = declaration.find(name);
+                string id_name = nowNode->cNode[0]->cNode[0]->value;
+                string var_name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
+                it = declaration.find(id_name);
                 if (it != declaration.end())
-                {
-                    hasValue[name] = declaration[name];
-                    return msg;
+                {// whether id is struct_id
+                    string struct_name = declaration[id_name];
+                    it = declaration.find(struct_name + "." + nowNode->cNode[0]->cNode[1]->value);
+                    if (it != declaration.end())
+                    {// wether var is struct_var
+                        it = hasValue.find(var_name);
+                        if (it != hasValue.end())
+                        {
+                            return msg;
+                        }
+                        else
+                        {
+                            hasValue[var_name] = declaration[struct_name + "." + nowNode->cNode[0]->cNode[1]->value];
+                            return msg;
+                        }
+                    }
+                    else
+                    {
+                        return nowNode->cNode[0]->cNode[1]->value + "is not the member of " + struct_name;
+                    }
+                    
                 }
                 else
                 {
-                    return "not define " + name;
+                    return "not define " + id_name;
                 }
             }
         }
@@ -169,6 +193,7 @@ public:
                 if (it == hasValue.end())
                 {
                     it = declaration.find(name);
+                    cout << name << " " << declaration[name] << endl;
                     if (it == declaration.end())
                     {
                         return "not define " + name;
@@ -181,22 +206,34 @@ public:
             }
             else if (nowNode->cNode[0]->description == "struct_var")
             {
-                string name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
-                it = hasValue.find(name);
-                if (it == hasValue.end())
-                {
-                    it = declaration.find(name);
-                    if (it == declaration.end())
-                    {
-                        return "not define " + name;
+                string id_name = nowNode->cNode[0]->cNode[0]->value;
+                string var_name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
+                it = declaration.find(id_name);
+                if (it != declaration.end())
+                {// whether id is struct_id
+                    string struct_name = declaration[id_name];
+                    it = declaration.find(struct_name + "." + nowNode->cNode[0]->cNode[1]->value);
+                    if (it != declaration.end())
+                    {// wether var is struct_var
+                        it = hasValue.find(var_name);
+                        if (it == hasValue.end())
+                        {
+                            return var_name + " is defined but not assigned";
+                        }
+                        
                     }
                     else
                     {
-                        return name + " is defined but not assigned";
+                        return nowNode->cNode[0]->cNode[1]->value + "is not the member of " + struct_name;
                     }
+                    
+                }
+                else
+                {
+                    return "not define " + id_name;
                 }
             }
-            else if (nowNode->cNode[1]->description == "id")
+            if (nowNode->cNode[1]->description == "id")
             {
                 string name = nowNode->cNode[1]->value;
                 it = hasValue.find(name);
@@ -215,30 +252,43 @@ public:
             }
             else if (nowNode->cNode[1]->description == "struct_var")
             {
-                string name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
-                it = hasValue.find(name);
-                if (it == hasValue.end())
-                {
-                    it = declaration.find(name);
-                    if (it == declaration.end())
-                    {
-                        return "not define " + name;
+                string id_name = nowNode->cNode[1]->cNode[0]->value;
+                string var_name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
+                it = declaration.find(id_name);
+                if (it != declaration.end())
+                {// whether id is struct_id
+                    string struct_name = declaration[id_name];
+                    it = declaration.find(struct_name + "." + nowNode->cNode[1]->cNode[1]->value);
+                    if (it != declaration.end())
+                    {// wether var is struct_var
+                        it = hasValue.find(var_name);
+                        if (it == hasValue.end())
+                        {
+                            return var_name + " is defined but not assigned";
+                        }
+                        
                     }
                     else
                     {
-                        return name + " is defined but not assigned";
+                        return nowNode->cNode[1]->cNode[1]->value + "is not the member of " + struct_name;
                     }
+                    
+                }
+                else
+                {
+                    return "not define " + id_name;
                 }
             }
+            return msg;
         }
-        cout << nowNode->description << " " << nowNode->value << endl;
+
         for (int i = 0; i < nowNode->cNodeLength; i++)
         {
 
-            msg = checkTree(nowNode->cNode[i]);
-            if (msg != "OK")
+            string tmp = checkTree(nowNode->cNode[i]);
+            if (tmp != "OK")
             {
-                return msg;
+                return tmp;
             }
         }
         return msg;
