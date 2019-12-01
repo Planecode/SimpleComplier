@@ -93,7 +93,7 @@ public:
         {
             return msg;
         }
-        if (nowNode->description == "define_var") //  define and assigned
+        if (nowNode->description == "define_var")
         {
             string name = nowNode->cNode[1]->value;
             it = declaration.find(name);
@@ -107,7 +107,7 @@ public:
                 return name + " has been defined";
             }
         }
-        else if (nowNode->description == "declaration_var") //  define but may not assigned
+        else if (nowNode->description == "declaration_var")
         {
             if (nowNode->cNode[0]->description != "struct")
             {
@@ -167,7 +167,7 @@ public:
                 it = declaration.find(name);
                 if (it == declaration.end())
                 {
-					return name + " is not defined";
+                    return name + " is not defined";
                 }
             }
             else if (nowNode->cNode[0]->description == "struct_var")
@@ -177,48 +177,48 @@ public:
                 string var_name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
                 it = declaration.find(id_name);
                 if (it != declaration.end())
-                {// whether id is struct_id
+                { // whether id is struct_id
                     string struct_name = declaration[id_name];
                     it = declaration.find(struct_name + "." + nowNode->cNode[0]->cNode[1]->value);
                     if (it == declaration.end())
-                    {// wether var is struct_var
-						return nowNode->cNode[0]->cNode[1]->value + " is not the member of " + struct_name;
+                    { // wether var is struct_var
+                        return nowNode->cNode[0]->cNode[1]->value + " is not the member of " + struct_name;
                     }
                 }
                 else
                 {
-					return id_name + " is not defined";
+                    return id_name + " is not defined";
                 }
             }
-			if (nowNode->cNode[1]->description == "id")
-			{
-				string name = nowNode->cNode[1]->value;
-				it = declaration.find(name);
-				if (it == declaration.end())
-				{
-					return name + " is not defined";
-				}
-			}
-			else if (nowNode->cNode[1]->description == "struct_var")
-			{
+            if (nowNode->cNode[1]->description == "id")
+            {
+                string name = nowNode->cNode[1]->value;
+                it = declaration.find(name);
+                if (it == declaration.end())
+                {
+                    return name + " is not defined";
+                }
+            }
+            else if (nowNode->cNode[1]->description == "struct_var")
+            {
 
-				string id_name = nowNode->cNode[1]->cNode[0]->value;
-				string var_name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
-				it = declaration.find(id_name);
-				if (it != declaration.end())
-				{// whether id is struct_id
-					string struct_name = declaration[id_name];
-					it = declaration.find(struct_name + "." + nowNode->cNode[1]->cNode[1]->value);
-					if (it == declaration.end())
-					{// wether var is struct_var
-						return nowNode->cNode[1]->cNode[1]->value + " is not the member of " + struct_name;
-					}
-				}
-				else
-				{
-					return id_name + " is not defined";
-				}
-			}
+                string id_name = nowNode->cNode[1]->cNode[0]->value;
+                string var_name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
+                it = declaration.find(id_name);
+                if (it != declaration.end())
+                { // whether id is struct_id
+                    string struct_name = declaration[id_name];
+                    it = declaration.find(struct_name + "." + nowNode->cNode[1]->cNode[1]->value);
+                    if (it == declaration.end())
+                    { // wether var is struct_var
+                        return nowNode->cNode[1]->cNode[1]->value + " is not the member of " + struct_name;
+                    }
+                }
+                else
+                {
+                    return id_name + " is not defined";
+                }
+            }
         }
 
         else if (nowNode->description == "+" || nowNode->description == "-" || nowNode->description == "*" || nowNode->description == "/" || nowNode->description == "%" || nowNode->description == "^" || nowNode->description == "|" || nowNode->description == "&" || nowNode->description == "||" || nowNode->description == "&&" || nowNode->description == "+=" || nowNode->description == "-=" || nowNode->description == "*=" || nowNode->description == "/=" || nowNode->description == ">>=" || nowNode->description == "<<=" || nowNode->description == "&=" || nowNode->description == "|=" || nowNode->description == "^=" || nowNode->description == "==" || nowNode->description == "!=" || nowNode->description == ">" || nowNode->description == ">=" || nowNode->description == "<" || nowNode->description == "<=" || nowNode->description == "<<" || nowNode->description == ">>") // check whether var is assigned
@@ -229,7 +229,7 @@ public:
                 it = declaration.find(name);
                 if (it == declaration.end())
                 {
-					return name + " is not defined";
+                    return name + " is not defined";
                 }
             }
             else if (nowNode->cNode[0]->description == "struct_var")
@@ -238,17 +238,17 @@ public:
                 string var_name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
                 it = declaration.find(id_name);
                 if (it != declaration.end())
-                {// whether id is struct_id
+                { // whether id is struct_id
                     string struct_name = declaration[id_name];
                     it = declaration.find(struct_name + "." + nowNode->cNode[0]->cNode[1]->value);
                     if (it == declaration.end())
-                    {// wether var is struct_var
-						return nowNode->cNode[0]->cNode[1]->value + " is not the member of " + struct_name;
+                    { // wether var is struct_var
+                        return nowNode->cNode[0]->cNode[1]->value + " is not the member of " + struct_name;
                     }
                 }
                 else
                 {
-					return id_name + " is not defined";
+                    return id_name + " is not defined";
                 }
             }
             if (nowNode->cNode[1]->description == "id")
@@ -257,7 +257,7 @@ public:
                 it = declaration.find(name);
                 if (it == declaration.end())
                 {
-					return name + " is not defined";
+                    return name + " is not defined";
                 }
             }
             else if (nowNode->cNode[1]->description == "struct_var")
@@ -266,18 +266,17 @@ public:
                 string var_name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
                 it = declaration.find(id_name);
                 if (it != declaration.end())
-                {// whether id is struct_id
+                { // whether id is struct_id
                     string struct_name = declaration[id_name];
                     it = declaration.find(struct_name + "." + nowNode->cNode[1]->cNode[1]->value);
                     if (it == declaration.end())
-                    {// wether var is struct_var
-						return nowNode->cNode[1]->cNode[1]->value + " is not the member of " + struct_name;
+                    { // wether var is struct_var
+                        return nowNode->cNode[1]->cNode[1]->value + " is not the member of " + struct_name;
                     }
-                    
                 }
                 else
                 {
-					return id_name + " is not defined";
+                    return id_name + " is not defined";
                 }
             }
         }
