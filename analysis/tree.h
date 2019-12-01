@@ -127,69 +127,8 @@ public:
             }
             return msg;
         }
-        else if (nowNode->description == "=")
-        {
-            if (nowNode->cNode[0]->description == "id")
-            {
-                string name = nowNode->cNode[0]->value;
-                it = init.find(name);
-                if (it == init.end())
-                {
-                    return name + " is not defined";
-                }
-            }
-            else if (nowNode->cNode[0]->description == "struct_var")
-            {
 
-                string id_name = nowNode->cNode[0]->cNode[0]->value;
-                string var_name = nowNode->cNode[0]->cNode[0]->value + "." + nowNode->cNode[0]->cNode[1]->value;
-                it = init.find(id_name);
-                if (it != init.end())
-                { // whether id is struct_id
-                    string struct_name = init[id_name];
-                    it = init.find(struct_name + "." + nowNode->cNode[0]->cNode[1]->value);
-                    if (it == init.end())
-                    { // wether var is struct_var
-                        return nowNode->cNode[0]->cNode[1]->value + " is not the member of " + struct_name;
-                    }
-                }
-                else
-                {
-                    return id_name + " is not defined";
-                }
-            }
-            if (nowNode->cNode[1]->description == "id")
-            {
-                string name = nowNode->cNode[1]->value;
-                it = init.find(name);
-                if (it == init.end())
-                {
-                    return name + " is not defined";
-                }
-            }
-            else if (nowNode->cNode[1]->description == "struct_var")
-            {
-
-                string id_name = nowNode->cNode[1]->cNode[0]->value;
-                string var_name = nowNode->cNode[1]->cNode[0]->value + "." + nowNode->cNode[1]->cNode[1]->value;
-                it = init.find(id_name);
-                if (it != init.end())
-                { // whether id is struct_id
-                    string struct_name = init[id_name];
-                    it = init.find(struct_name + "." + nowNode->cNode[1]->cNode[1]->value);
-                    if (it == init.end())
-                    { // wether var is struct_var
-                        return nowNode->cNode[1]->cNode[1]->value + " is not the member of " + struct_name;
-                    }
-                }
-                else
-                {
-                    return id_name + " is not defined";
-                }
-            }
-        }
-
-        else if (nowNode->description == "+" || nowNode->description == "-" || nowNode->description == "*" || nowNode->description == "/" || nowNode->description == "%" || nowNode->description == "^" || nowNode->description == "|" || nowNode->description == "&" || nowNode->description == "||" || nowNode->description == "&&" || nowNode->description == "+=" || nowNode->description == "-=" || nowNode->description == "*=" || nowNode->description == "/=" || nowNode->description == ">>=" || nowNode->description == "<<=" || nowNode->description == "&=" || nowNode->description == "|=" || nowNode->description == "^=" || nowNode->description == "==" || nowNode->description == "!=" || nowNode->description == ">" || nowNode->description == ">=" || nowNode->description == "<" || nowNode->description == "<=" || nowNode->description == "<<" || nowNode->description == ">>") // check whether var is assigned
+        else if (nowNode->description == "=" || nowNode->description == "+" || nowNode->description == "-" || nowNode->description == "*" || nowNode->description == "/" || nowNode->description == "%" || nowNode->description == "^" || nowNode->description == "|" || nowNode->description == "&" || nowNode->description == "||" || nowNode->description == "&&" || nowNode->description == "+=" || nowNode->description == "-=" || nowNode->description == "*=" || nowNode->description == "/=" || nowNode->description == ">>=" || nowNode->description == "<<=" || nowNode->description == "&=" || nowNode->description == "|=" || nowNode->description == "^=" || nowNode->description == "==" || nowNode->description == "!=" || nowNode->description == ">" || nowNode->description == ">=" || nowNode->description == "<" || nowNode->description == "<=" || nowNode->description == "<<" || nowNode->description == ">>") // check whether var is assigned
         {
             if (nowNode->cNode[0]->description == "id")
             {
