@@ -385,6 +385,11 @@ int main(void)
     string sFile;
     getline(cin, sFile);
     lexer.yyin = new std::ifstream(sFile);
+    if(!(*lexer.yyin))
+    {
+        cout << "File doesn't exist." << endl;
+        return 0;
+    }
     int n = 1;
     if (parser.yycreate(&lexer)) {
         if (lexer.yycreate(&parser)) {
