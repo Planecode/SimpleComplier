@@ -45,6 +45,35 @@ class ControlJump
         delete j_true;
         delete j_false;
     }
+    void jump_true(ThreeAddress *tail)
+    {
+        while(this->j_true->size() != 0)
+            {
+                this->j_true->top()->jump = tail;
+                this->j_true->pop();
+            }
+    }
+    void jump_false(ThreeAddress *tail)
+    {
+        while(this->j_false->size() != 0)
+            {
+                this->j_false->top()->jump = tail;
+                this->j_false->pop();
+            }
+    }
+    void unit_jump(ControlJump *tmp)
+    {
+        while(tmp->j_true->size() != 0)
+            {
+                this->j_true->push(tmp->j_true->top());
+                tmp->j_true->pop();
+            }
+            while(tmp->j_false->size() != 0)
+            {
+                this->j_false->push(tmp->j_false->top());
+                tmp->j_false->pop();
+            }
+    }
 
 };
 
@@ -144,6 +173,12 @@ class List
             node *cNode = nowNode->cNode[i];
             if(cNode->description == "conditional_statement")
                 generate_conditional(cNode);
+            else if(cNode->description == "while_statement")
+                generate_while(cNode);
+            else if(cNode->description == "for_statement")
+                generate_for(cNode);
+            else if(cNode->description == "do_while_statement")
+                generate_do_while(cNode);
             else
                 generate_calc(cNode);
         }
@@ -163,6 +198,43 @@ class List
             push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
     }
 
+
+    void generate_while(node *nowNode)
+    {
+        ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+        push(tmp);
+        ThreeAddress *j = new ThreeAddress("J", 0, 0, 0);
+        j->jump = tail;
+        ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
+        if(control_jump->j_true->size() != 0)
+            {
+                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                push(tmp);
+                control_jump->jump_true(tail);
+            }
+        
+        if(nowNode->cNode[1]->description == "statement")
+            generate_statement(nowNode->cNode[1]);
+        else
+            generate_calc(nowNode->cNode[1]);
+        push(j);
+        if(control_jump->j_false->size() != 0)
+            {
+                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                push(tmp);
+                control_jump->jump_false(tail);
+            }
+    }
+    void generate_for(node *nowNode)
+    {
+
+    }
+
+    void generate_do_while(node *nowNode)
+    {
+
+    }
+
     void generate_conditional(node *nowNode)
     {
         if(nowNode->cNode[0]->description == "if_statement")
@@ -176,6 +248,10 @@ class List
                 generate_if(nowNode->cNode[0], nowNode->cNode[1]);
             }
         }
+        else
+        {
+            generate_switch(nowNode->cNode[0]);
+        }
             
     }
     void generate_if(node *nowNode, node *elseNode = 0)
@@ -185,11 +261,7 @@ class List
             {
                 ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
                 push(tmp);
-                while(control_jump->j_true->size() != 0)
-                {
-                    control_jump->j_true->top()->jump = tmp;
-                    control_jump->j_true->pop();
-                }
+                control_jump->jump_true(tail);
             }
         if(nowNode->cNode[1]->description == "statement")
             generate_statement(nowNode->cNode[1]);
@@ -199,11 +271,7 @@ class List
             {
                 ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
                 push(tmp);
-                while(control_jump->j_false->size() != 0)
-                {
-                    control_jump->j_false->top()->jump = tmp;
-                    control_jump->j_false->pop();
-                }
+                control_jump->jump_false(tail);
             }
         if(elseNode != 0)
         {
@@ -237,23 +305,10 @@ class List
             {
                 ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
                 push(tmp);
-                while(control_jump->j_false->size() != 0)
-                {
-                    control_jump->j_false->top()->jump = tmp;
-                    control_jump->j_false->pop();
-                }
+                control_jump->jump_false(tail);
             }
             ControlJump * tmp = generate_bool_expression(nowNode->cNode[1], end);
-            while(tmp->j_true->size() != 0)
-            {
-                control_jump->j_true->push(tmp->j_true->top());
-                tmp->j_true->pop();
-            }
-            while(tmp->j_false->size() != 0)
-            {
-                control_jump->j_false->push(tmp->j_false->top());
-                tmp->j_false->pop();
-            }
+            control_jump->unit_jump(tmp);
             delete tmp;
             return control_jump;
         }
@@ -264,23 +319,10 @@ class List
             {
                 ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
                 push(tmp);
-                while(control_jump->j_true->size() != 0)
-                {
-                    control_jump->j_true->top()->jump = tmp;
-                    control_jump->j_true->pop();
-                }
+                control_jump->jump_true(tail);
             }
             ControlJump * tmp = generate_bool_expression(nowNode->cNode[1], end);
-            while(tmp->j_true->size() != 0)
-            {
-                control_jump->j_true->push(tmp->j_true->top());
-                tmp->j_true->pop();
-            }
-            while(tmp->j_false->size() != 0)
-            {
-                control_jump->j_false->push(tmp->j_false->top());
-                tmp->j_false->pop();
-            }
+            control_jump->unit_jump(tmp);
             delete tmp;
             return control_jump;
         }
@@ -306,6 +348,11 @@ class List
         else
             control_jump->j_false->push(j_end);
         return control_jump;
+    }
+
+    void generate_switch(node *nowNode)
+    {
+
     }
 };
 #endif // LIST_H_INCLUDED
