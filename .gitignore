@@ -2,6 +2,7 @@
 /analysis/*.h
 !/analysis/tree.h
 !/analysis/list.h
+!/analysis/code.h
 /analysis/*.v
 /analysis/*.pgp
 /analysis/*.pgw

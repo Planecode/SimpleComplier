@@ -198,9 +198,54 @@ class List
             push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
     }
 
+    void generate_local_calc(node *nowNode, map<string, IdValue *> &localIdMap)
+    {
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            if(cNode->description == "init_var")
+            {
+                local_install_id(cNode, localIdMap);
+            }
+            generate_local_calc(cNode, localIdMap);
+        }
+        if(avoidSet.count(nowNode->description))
+            return;
+        if(nowNode->description == "=")
+            push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
+        else
+            push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
+    }
+    void local_install_id(node *nowNode, map<string, IdValue *> &localIdMap)
+    {
+        string type = nowNode->cNode[0]->description;
+        for(int i = 1; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            local_allocate(cNode, localIdMap, type);
+        }
+    }
+    void local_allocate(node *nowNode, map<string, IdValue *> &localIdMap, string type)
+    {
+        for(int i = 1; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            local_allocate(cNode, localIdMap, type);
+        }
+        if(nowNode->description == "id")
+        {
+            if(localIdMap.count(nowNode->value) == 0)
+            {
+                localIdMap[nowNode->value] = new IdValue();
+            }
+            localIdMap[nowNode->value]->allocate(type);
+        }
+    }
+
 
     void generate_while(node *nowNode)
     {
+        map<string, IdValue *> localIdMap;
         ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
         push(tmp);
         ThreeAddress *j = new ThreeAddress("J", 0, 0, 0);
@@ -216,7 +261,7 @@ class List
         if(nowNode->cNode[1]->description == "statement")
             generate_statement(nowNode->cNode[1]);
         else
-            generate_calc(nowNode->cNode[1]);
+            generate_local_calc(nowNode->cNode[1], localIdMap);
         push(j);
         if(control_jump->j_false->size() != 0)
             {
@@ -256,6 +301,7 @@ class List
     }
     void generate_if(node *nowNode, node *elseNode = 0)
     {
+        map<string, IdValue *> localIdMap;
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
             {
@@ -266,7 +312,7 @@ class List
         if(nowNode->cNode[1]->description == "statement")
             generate_statement(nowNode->cNode[1]);
         else
-            generate_calc(nowNode->cNode[1]);
+            generate_local_calc(nowNode->cNode[1], localIdMap);
         if(control_jump->j_false->size() != 0)
             {
                 ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
