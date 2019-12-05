@@ -9,10 +9,10 @@
 
 using namespace std;
 
-set<string> avoidSet = { "id", "number", "str", "int", "init_var" };
+set<string> avoidSet = {"id", "number", "str", "int", "init_var"};
 struct ArrayDimension
 {
-	int dimension[100] = { -1 };
+	int dimension[100] = {-1};
 } dimensionList;
 class ThreeAddress
 {
@@ -422,7 +422,7 @@ public:
 		return offset - 1;
 	}
 	node *add_array_address(node *nowNode) //node array_id
-	{                                      // add array_address to array_address map
+	{																			 // add array_address to array_address map
 		string array_id = nowNode->cNode[0]->value;
 		if (dimensionList.count(array_id) != 0)
 		{
