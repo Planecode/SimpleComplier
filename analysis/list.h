@@ -2,6 +2,7 @@
 #define LIST_H_INCLUDED
 #include <iostream>
 #include <string>
+#include <map>
 #include "tree.h"
 #include <set>
 #include <stack>
@@ -9,7 +10,10 @@
 using namespace std;
 
 set<string> avoidSet = {"id", "number", "str",  "int", "init_var"};
-
+struct ArrayDimension
+{
+	int dimension[100] = { -1 };
+}dimensionList;
 class ThreeAddress
 {
     public:
@@ -82,6 +86,9 @@ class List
     public:
     ThreeAddress *head;
     ThreeAddress *tail;
+	map<string, ArrayDimension> dimensionList;
+	map<string, IdValue*> idMap;
+	map<string, node*> array_address;
     List(): head(0), tail(0)
     {
 
@@ -119,21 +126,21 @@ class List
             cout << "Address->" << p << " " << p->op << " ";
             if(p->arg1 != 0)
             {
-                if(p->arg1->description == "id" || p->arg1->description == "str" || p->arg1->description == "number")
+                if(p->arg1->description == "id" || p->arg1->description == "str" || p->arg1->description == "number" || p->arg1->description == "offset")
                     cout << p->arg1->description << "->" << p->arg1->value << " ";
                 else
                     cout << p->arg1 << " ";
             }
             if(p->arg2 != 0)
             {
-                if(p->arg2->description == "id" || p->arg2->description == "str" || p->arg2->description == "number")
+                if(p->arg2->description == "id" || p->arg2->description == "str" || p->arg2->description == "number" || p->arg1->description == "offset")
                     cout << p->arg2->description << "->" << p->arg2->value << " ";
                 else
                     cout << p->arg2 << " ";
             }
             if(p->result != 0)
             {
-                if(p->result->description == "id" || p->result->description == "str" || p->result->description == "number")
+                if(p->result->description == "id" || p->result->description == "str" || p->result->description == "number" || p->arg1->description == "offset")
                     cout << p->result->description << "->" << p->result->value << " ";
                 else
                     cout << p->result << " ";
@@ -179,13 +186,25 @@ class List
                 generate_for(cNode);
             else if(cNode->description == "do_while_statement")
                 generate_do_while(cNode);
+			else if (cNode->description == "init_var")
+			{
+				if (cNode->cNode[1] != "=")
+				{
+					node *array_id = cNode->cNode[0]->cNode[0];
+					node *dim_list = cNode->cNode[0]->cNode[1];
+					for (int i = 0; i < dim_list->cNodeLength; i++)
+					{
+						dimensionList[array_id->value].dimension[i] = stoi(array_id->value);
+					}
+				}
+			}
             else
                 generate_calc(cNode);
         }
     }
     void generate_calc(node *nowNode)
     {
-        for(int i = 0; i < nowNode->cNodeLength; i++)
+		for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
             generate_calc(cNode);
@@ -193,11 +212,142 @@ class List
         if(avoidSet.count(nowNode->description))
             return;
         if(nowNode->description == "=")
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
-        else
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
-    }
+        {
+            if (nowNode->cNode[0]->description == "array_id")
+            {//array
+                generate_array(nowNode);
+            }
 
+            else if (nowNode->cNode[0]->description == "pointer")
+            {//pointer
+                generate_pointer(nowNode->cNode[0]);
+            }
+            else if(nowNode->cNode[1]->description == "pointer")
+            {
+                generate_pointer(nowNode->cNode[1]);
+            }
+            else
+            {//id
+                push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
+            }
+        }
+		else
+		{
+			if (nowNode->cNode[0]->description == "array_id" || nowNode->cNode[1]->description == "array_id"))
+			{//array
+				generate_array(nowNode);
+			}
+			else if (nowNode->cNode[0]->description == "pointer")
+			{//pointer
+				generate_pointer(nowNode->cNode[0]);
+			}
+			else if (nowNode->cNode[1]->description == "pointer")
+			{
+				generate_pointer(nowNode->cNode[1]);
+			}
+			else
+			{//id
+				push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
+			}
+		}
+            
+    }
+    void generate_array(node *nowNode)
+    {
+		if (nowNode->description == "=")
+		{
+			if (nowNode->cNode[0] == "array_id")
+			{
+				string array_id = nowNode->cNode[0]->cNode[0]->value;
+				if (dimensionList.count(array_id->value) != 0)
+				{
+					int offset_num = get_offset(array_id, array_id->cNode[1]) * idMap[array_id]->width;
+					node *offset = new node("offset", 0, 0);
+					offset->value = to_string(offset_num);
+					if (array_address.count(array_id + offset->value) == 0)
+					{
+						array_address[array_id + offset->value] = nowNode->cNode[0];
+					}
+					push(new ThreeAddress("+", offset, nowNode->cNode[0]->cNode[0], nowNode->cNode[0]));
+					push(new ThreeAddress("=", nowNode->cNode[1], 0, nowNode->cNode[0]));
+				}
+				
+			} 
+		} 
+		else           
+		{
+			if (nowNode->cNode[0]->description == "array_id" && nowNode->cNode[1]->description != "array_id")
+			{
+				string array_id = nowNode->cNode[0]->cNode[0]->value;
+				int offset_num = get_offset(array_id, nowNode->cNode[0]->cNode[1]);
+				if (array_address.count(array_id + to_string(offset_num)) != 0)
+				{
+					push(new ThreeAddress(nowNode->description, array_address[array_id + to_string(offset_num)], nowNode->cNode[1], nowNode));
+				}
+				else
+				{
+					cout << array_id + offset->value << " is not assign" << endl;
+				}
+			}
+			else if (nowNode->cNode[0]->description != "array_id" && nowNode->cNode[1]->description == "array_id")
+			{
+				string array_id = nowNode->cNode[1]->cNode[0]->value;
+				int offset_num = get_offset(array_id, nowNode->cNode[1]->cNode[1]);
+				if (array_address.count(array_id + to_string(offset_num)) != 0)
+				{
+					push(new ThreeAddress(nowNode->description, nowNode->cNode[0], array_address[array_id + to_string(offset_num)], nowNode));
+				}
+				else
+				{
+					cout << array_id + offset->value << " is not assign" << endl;
+				}
+			}
+			else
+			{
+				string array_id1 = nowNode->cNode[0]->cNode[0]->value;
+				string array_id2 = nowNode->cNode[1]->cNode[0]->value;
+				int offset_num1 = get_offset(array_id1, nowNode->cNode[0]->cNode[1]);
+				int offset_num2 = get_offset(array_id2, nowNode->cNode[1]->cNode[1]);
+				string name1 = array_id1 + to_string(offset_num1);
+				string name2 = array_id2 + to_string(offset_num2);
+				if (array_address.count(name1) != 0 && array_address.count(name2) != 0)
+				{
+					push(new ThreeAddress(nowNode->description, array_address[name1], array_address[name2], nowNode));
+				}
+				else
+				{
+					cout << name1 << " or " << name2 << " is not assign" << endl;
+				}
+			}
+		}
+		
+    }
+	int get_offset(string id, node *list)
+	{//argv: array_id  dimension_list
+		if (dimensionList.count(id) == 0)
+		{
+			cout << "array " + id + "is not defined" >> endl;
+		}
+		int offset = 0;
+		for (int i = 0; i < list->cNodeLength; i++)
+		{
+			int tmp = stoi(list->cNode[i]->value) + 1;
+			if (tmp <= dimensionList[id].dimension[i])
+			{// not out of range
+				for (int j = i + 1; j < list->cNodeLength; j++)
+				{
+					tmp = tmp * dimensionList[id].dimension[j];
+				}
+				offset = offset + tmp;
+			}
+			
+		}
+		return offset;
+	}
+    void generate_pointer(node *nowNode)
+    {
+		
+    }
 
     void generate_while(node *nowNode)
     {

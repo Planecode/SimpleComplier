@@ -239,11 +239,14 @@ extern map<string, IdValue *> idMap;
     | {$$ = 0;}
     ;
 
-    argv_list: declaration_expression COMMA argv_list {
+    argv_list: array_element COMMA argv_list {
         int cNodeLength = 0;
         if($3 != 0){cNodeLength = $3->cNodeLength;}
         $$ = new node("argv_list", parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | declaration_expression {$$ = new node("argv_list", new(node*[1]){$1}, 1);}
+    | array_element {$$ = new node("argv_list", new(node*[1]){$1}, 1);}
+    ;
+
+    array_element: declaration_expression {$$ = new node("array_element", new(node*[1]){$1}, 1);}
     ;
 
     assignment_expression: var ASSIGN expression {
@@ -397,6 +400,7 @@ int main(void)
         }
     }
     parserTree.print(parserTree.root, "");
+    parserList.idMap = idMap;
     parserList.generate(parserTree.root);
     parserList.print();
     return n;
