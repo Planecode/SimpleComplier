@@ -97,12 +97,14 @@ extern map<string, IdValue *> idMap;
     ;
     declaration_var: var_type var {
         $$ = new node("init_var", new(node*[2]){$1, $2}, 2);
-        idMap[$2->value]->allocate($1->description);
+        if($2->description == "id"){idMap[$2->value]->allocate($1->description);}
+        else if ($2->description == "array_id"){idMap[$2->cNode[0]->value]->allocate($1->description);}
         }
     ;
     define_var:  var_type assignment_expression {
         $$ = new node("init_var", new(node*[2]){$1, $2}, 2);
-        idMap[$2->cNode[0]->value]->allocate($1->description);
+        if($2->cNode[0]->description == "id"){idMap[$2->cNode[0]->value]->allocate($1->description);}
+        else if ($2->cNode[0]->description == "array_id"){idMap[$2->cNode[0]->cNode[0]->value]->allocate($1->description);}
         }
     ;
 
