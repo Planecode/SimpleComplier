@@ -4,22 +4,25 @@
 #include <string>
 #include "tree.h"
 #include <set>
+#include <map>
 #include <stack>
 
 using namespace std;
 
 set<string> avoidSet = {"id", "number", "str",  "int", "init_var"};
+map<string, IdValue *> idMap;
+
 
 class ThreeAddress
 {
     public:
     string op;
-    node *arg1;
-    node *arg2;
-    node *result;
+    string arg1;
+    string arg2;
+    string result;
     ThreeAddress *jump;
     ThreeAddress *next;
-    ThreeAddress(string op, node *arg1, node *arg2, node *result):op(op), arg1(arg1), arg2(arg2), result(result), jump(0), next(0)
+    ThreeAddress(string op, string arg1, string arg2, string result):op(op), arg1(arg1), arg2(arg2), result(result), jump(0), next(0)
     {
 
     }
@@ -82,13 +85,24 @@ class List
     public:
     ThreeAddress *head;
     ThreeAddress *tail;
-    List(): head(0), tail(0)
+    stack<string> *id_map_stack;
+    int tmp_seq;
+    List(): head(0), tail(0), tmp_seq(0)
     {
-
+        id_map_stack = new stack<string>();
+        id_map_stack->push("");
     }
     ~List()
     {
 
+    }
+    string getTmp()
+    {
+        return "tmp_" + to_string(tmp_seq++);
+    }
+    string getLocalMap()
+    {
+        return "local_" + to_string(tmp_seq++);
     }
     void push(ThreeAddress *three_address)
     {
@@ -98,12 +112,13 @@ class List
             tail = three_address;
             return;
         }
-        else if(tail->op == "")
+        if(tail->op == "")
         {
             tail->op = three_address->op;
             tail->arg1 = three_address->arg1;
             tail->arg2 = three_address->arg2;
             tail->result = three_address->result;
+            tail->jump = tail->jump;
             tail->next = three_address->next;
             delete three_address;
             return;
@@ -117,25 +132,10 @@ class List
         while(p != 0)
         {
             cout << "Address->" << p << " " << p->op << " ";
-            if(p->arg1 != 0)
+            cout << p->arg1 << " ";
+            cout << p->arg2 << " ";
+            if(p->result != "")
             {
-                if(p->arg1->description == "id" || p->arg1->description == "str" || p->arg1->description == "number")
-                    cout << p->arg1->description << "->" << p->arg1->value << " ";
-                else
-                    cout << p->arg1 << " ";
-            }
-            if(p->arg2 != 0)
-            {
-                if(p->arg2->description == "id" || p->arg2->description == "str" || p->arg2->description == "number")
-                    cout << p->arg2->description << "->" << p->arg2->value << " ";
-                else
-                    cout << p->arg2 << " ";
-            }
-            if(p->result != 0)
-            {
-                if(p->result->description == "id" || p->result->description == "str" || p->result->description == "number")
-                    cout << p->result->description << "->" << p->result->value << " ";
-                else
                     cout << p->result << " ";
             } 
             else
@@ -152,7 +152,9 @@ class List
         {
             node *cNode = root->cNode[i];
             if(cNode->description == "main_function")
+            {
                 generate_main(cNode);
+            }
         }
     }
     void generate_main(node *nowNode)
@@ -179,6 +181,8 @@ class List
                 generate_for(cNode);
             else if(cNode->description == "do_while_statement")
                 generate_do_while(cNode);
+            else if(cNode->description == "init_var")
+                install_id(cNode);
             else
                 generate_calc(cNode);
         }
@@ -193,67 +197,55 @@ class List
         if(avoidSet.count(nowNode->description))
             return;
         if(nowNode->description == "=")
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
+            push(new ThreeAddress(nowNode->description, nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
         else
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
+        {
+            if(nowNode->value == "")
+                nowNode->value = getTmp();
+            push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+        }
+            
     }
 
-    void generate_local_calc(node *nowNode, map<string, IdValue *> &localIdMap)
-    {
-        for(int i = 0; i < nowNode->cNodeLength; i++)
-        {
-            node *cNode = nowNode->cNode[i];
-            if(cNode->description == "init_var")
-            {
-                local_install_id(cNode, localIdMap);
-            }
-            generate_local_calc(cNode, localIdMap);
-        }
-        if(avoidSet.count(nowNode->description))
-            return;
-        if(nowNode->description == "=")
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
-        else
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode));
-    }
-    void local_install_id(node *nowNode, map<string, IdValue *> &localIdMap)
+    void install_id(node *nowNode)
     {
         string type = nowNode->cNode[0]->description;
         for(int i = 1; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
-            local_allocate(cNode, localIdMap, type);
+            local_allocate(cNode, type);
         }
     }
-    void local_allocate(node *nowNode, map<string, IdValue *> &localIdMap, string type)
+    void local_allocate(node *nowNode, string type)
     {
-        for(int i = 1; i < nowNode->cNodeLength; i++)
+        for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
-            local_allocate(cNode, localIdMap, type);
+            local_allocate(cNode, type);
         }
         if(nowNode->description == "id")
         {
-            if(localIdMap.count(nowNode->value) == 0)
+            if(idMap.count(nowNode->value) == 0)
             {
-                localIdMap[nowNode->value] = new IdValue();
+                idMap[nowNode->value] = new IdValue();
             }
-            localIdMap[nowNode->value]->allocate(type);
+            idMap[nowNode->value]->allocate(type);
         }
+        else
+            generate_calc(nowNode);
     }
 
 
     void generate_while(node *nowNode)
     {
-        map<string, IdValue *> localIdMap;
-        ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+        ThreeAddress *tmp = new ThreeAddress("", "", "", "");
         push(tmp);
-        ThreeAddress *j = new ThreeAddress("J", 0, 0, 0);
+        ThreeAddress *j = new ThreeAddress("J", "", "", "");
         j->jump = tail;
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
                 push(tmp);
                 control_jump->jump_true(tail);
             }
@@ -261,11 +253,11 @@ class List
         if(nowNode->cNode[1]->description == "statement")
             generate_statement(nowNode->cNode[1]);
         else
-            generate_local_calc(nowNode->cNode[1], localIdMap);
+            generate_calc(nowNode->cNode[1]);
         push(j);
         if(control_jump->j_false->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
                 push(tmp);
                 control_jump->jump_false(tail);
             }
@@ -301,27 +293,26 @@ class List
     }
     void generate_if(node *nowNode, node *elseNode = 0)
     {
-        map<string, IdValue *> localIdMap;
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
                 push(tmp);
                 control_jump->jump_true(tail);
             }
         if(nowNode->cNode[1]->description == "statement")
             generate_statement(nowNode->cNode[1]);
         else
-            generate_local_calc(nowNode->cNode[1], localIdMap);
+            generate_calc(nowNode->cNode[1]);
         if(control_jump->j_false->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
                 push(tmp);
                 control_jump->jump_false(tail);
             }
         if(elseNode != 0)
         {
-            ThreeAddress *j = new ThreeAddress("J", 0, 0, 0);
+            ThreeAddress *j = new ThreeAddress("J", "", "", "");
             if(tail->op == "")
                 {
                     ThreeAddress *tmp = head;
@@ -337,7 +328,7 @@ class List
                     push(j);
                 }
             generate_statement(elseNode);
-            ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+            ThreeAddress *tmp = new ThreeAddress("", "", "", "");
             push(tmp);
             j->jump = tail;
         }
@@ -349,7 +340,7 @@ class List
             ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JTrue");
             if(control_jump->j_false->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
                 push(tmp);
                 control_jump->jump_false(tail);
             }
@@ -363,7 +354,7 @@ class List
             ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
             if(control_jump->j_true->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", 0, 0, 0);
+                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
                 push(tmp);
                 control_jump->jump_true(tail);
             }
@@ -373,7 +364,7 @@ class List
             return control_jump;
         }
         generate_calc(nowNode);
-        ThreeAddress *j_end = new ThreeAddress(end, nowNode, 0, 0);
+        ThreeAddress *j_end = new ThreeAddress(end, nowNode->value, "", "");
         if(tail->op == "")
         {
             ThreeAddress *tmp = head;
