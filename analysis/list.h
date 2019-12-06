@@ -191,6 +191,15 @@ public:
             }
             else
             {
+                if(cNode->description == "+=" || cNode->description == "-=" || cNode->description == ">>=" 
+                || cNode->description == "<<=" || cNode->description == "&=" || cNode->description == "|=" 
+                || cNode->description == "^=")
+                {
+                    char *str_ = cNode->description.c_str();
+                    node *tmp = new node(str_[0], new(node*[2]){nowNode->cNode[0], nowNode->cNode[1]}, 0);
+                    cNode->description = "=";
+                    cNode->cNode[1] = tmp;
+                }
                 generate_calc(cNode);
             }
         }
@@ -223,7 +232,10 @@ public:
                 push(new ThreeAddress(nowNode->description, nowNode->cNode[1], 0, nowNode->cNode[0]));
             }
         }
-        else if (nowNode->description == "+" || nowNode->description == "-" || nowNode->description == "*" || nowNode->description == "/" || nowNode->description == "%" || nowNode->description == "^")
+        else if (nowNode->description == "+" || nowNode->description == "-" || nowNode->description == "*" 
+        || nowNode->description == "/" || nowNode->description == "%" || nowNode->description == "^" 
+        || nowNode->description == "|" || nowNode->description == "&" || nowNode->description == ">>" 
+        || nowNode->description == "<<")
         {
             if (nowNode->cNode[0]->description == "array_id" || nowNode->cNode[1]->description == "array_id")
             { //array
