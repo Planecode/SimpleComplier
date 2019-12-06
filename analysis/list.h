@@ -196,7 +196,8 @@ public:
                 || cNode->description == "^=")
                 {
                     char *str_ = cNode->description.c_str();
-                    node *tmp = new node(str_[0], new(node*[2]){nowNode->cNode[0], nowNode->cNode[1]}, 0);
+					string description(1, str_[0]);
+                    node *tmp = new node(description, new(node*[2]){nowNode->cNode[0], nowNode->cNode[1]}, 0);
                     cNode->description = "=";
                     cNode->cNode[1] = tmp;
                 }
