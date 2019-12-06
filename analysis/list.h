@@ -196,7 +196,11 @@ public:
                 || cNode->description == "^=")
                 {
                     char *str_ = cNode->description.c_str();
-					string description(1, str_[0]);
+					string description;
+                    for (int i = 0; str_[i] != '='; i++)
+                    {
+                        description.push_back(str_[i]);
+                    }
                     node *tmp = new node(description, new(node*[2]){nowNode->cNode[0], nowNode->cNode[1]}, 0);
                     cNode->description = "=";
                     cNode->cNode[1] = tmp;
