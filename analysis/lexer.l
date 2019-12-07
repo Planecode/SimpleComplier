@@ -14,10 +14,7 @@ ParserWizard generated Lex file.
 #include "tree.h"
 extern int yylval;
 using namespace std;
-string install_id(char* yytext);
-string install_str(char* yytext);
 int get_token(char* yytext);
-map<string, IdValue *> idMap;
 map<string, int> wordMap{{"void", VOID}, {"int", INT}, {"double", DOUBLE}, {"float", FLOAT}, {"string", STRING}, {"long", LONG}, 
 {"short", SHORT}, {"byte", BYTE}, {"if", IF}, {"else", ELSE}, {"for", FOR}, {"switch", SWITCH}, {"main",MAIN}, {"continue", CONTINUE}, 
 {"break", BREAK}, {"case", CASE}, {"default", DEFAULT}, {"while", WHILE}, {"do", DO}, {"new", NEW}, {"return", RETURN}, {"struct", STRUCT}};
@@ -167,8 +164,8 @@ error ([_a-zA-Z0-9]*)|.
 
 {delim} {}
 {number} {string value = yytext; yylval = new node("number", 0, 0); yylval->value = value; return NUMBER;}
-{id} {string value = yytext; int token = get_token(yytext);if(token == ID){yylval = new node("id", 0, 0); yylval->value = install_id(yytext);}return token;}
-{str} {yylval=new node("str", 0, 0); yylval->value = install_str(yytext); return STR;}
+{id} {string value = yytext; int token = get_token(yytext);if(token == ID){yylval = new node("id", 0, 0); yylval->value = value;}return token;}
+{str} {string value = yytext; string str = value.substr(1, value.length()-2); yylval=new node("str", 0, 0); yylval->value = str; return STR;}
 {error} {return ERROR;}
 
 %%
@@ -186,24 +183,6 @@ int get_token(char* yytext)
     return ID;
 }
 
-string install_id(char* yytext)
-{
-    string id = yytext;
-    if(idMap.count(id) == 0)
-    {
-        idMap[id] = new IdValue();
-    }
-    return id;
-}
-
-string install_str(char* yytext)
-{
-    string str = yytext;
-    str = str.substr(1, str.length()-2);
-    if(idMap.count(str) == 0)
-        idMap[str] = new IdValue();
-    return str;
-}
 int lexer::yygetchar()
 {
     char c;

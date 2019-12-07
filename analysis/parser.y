@@ -14,7 +14,6 @@ ParserWizard generated YACC file.
 using namespace std;
 tree parserTree;
 List parserList;
-extern map<string, IdValue *> idMap;
 %}
 %token ASSIGN EQ GT LT
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN
@@ -97,12 +96,10 @@ extern map<string, IdValue *> idMap;
     ;
     declaration_var: var_type var {
         $$ = new node("init_var", new(node*[2]){$1, $2}, 2);
-        idMap[$2->value]->allocate($1->description);
         }
     ;
     define_var:  var_type assignment_expression {
         $$ = new node("init_var", new(node*[2]){$1, $2}, 2);
-        idMap[$2->cNode[0]->value]->allocate($1->description);
         }
     ;
 
