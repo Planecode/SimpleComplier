@@ -229,7 +229,7 @@ List parserList;
     function_call_expression: ID LP argv_body RP {$$ = new node("function_call_expression", new(node*[2]){$1, $3}, 2);}
     ;
 
-    array_expression: LBRACE argv_body RBRACE {$$ = new node("array_expression", new(node*[1]){$2}, 1);}
+    array_expression: LBRACE argv_body RBRACE {$$ = $2;}
     ;
 
     argv_body: argv_list {$$ = $1;}
