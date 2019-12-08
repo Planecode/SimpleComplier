@@ -248,13 +248,13 @@ class List
             node *argv_list = nowNode->cNode[1];
             for(int i = 0; i < index; i++)
             {
-                if(i <= argv_list->cNodeLength)
+                if(i < argv_list->cNodeLength)
                 {
                     push(new ThreeAddress("array=", argv_list->cNode[i]->value, to_string(i), nowNode->cNode[0]->cNode[0]->value));
                 }
                 else
                 {
-                    push(new ThreeAddress("array=", argv_list->cNode[i]->value, "0", nowNode->cNode[0]->cNode[0]->value));
+                    push(new ThreeAddress("array=", "0", to_string(i), nowNode->cNode[0]->cNode[0]->value));
                 }
                 
             }
