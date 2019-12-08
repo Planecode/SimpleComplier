@@ -343,7 +343,22 @@ class List
 
     void generate_do_while(node *nowNode)
     {
-
+        string label = getLabel();
+        push(new ThreeAddress("label", "", "", label));
+        if(nowNode->cNode[0]->description == "statement")
+            generate_statement(nowNode->cNode[0]);
+        else
+            generate_calc(nowNode->cNode[0]);
+        
+        ControlJump *control_jump = generate_bool_expression(nowNode->cNode[1], "JTrue");
+        if(control_jump->j_true->size() != 0)
+        {
+            control_jump->jump_true(label);
+        }
+        if(control_jump->j_false->size() != 0)
+        {
+            control_jump->jump_false(label);
+        }
     }
 
     void generate_conditional(node *nowNode)
