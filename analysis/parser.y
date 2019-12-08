@@ -11,9 +11,11 @@ ParserWizard generated YACC file.
 #include "lexer.h"
 #include "tree.h"
 #include "list.h"
+#include "code.h"
 using namespace std;
 tree parserTree;
 List parserList;
+CodeGenerate codeGenerate;
 %}
 %token ASSIGN EQ GT LT
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN
@@ -396,5 +398,6 @@ int main(void)
     parserTree.print(parserTree.root, "");
     parserList.generate(parserTree.root);
     parserList.print();
+    codeGenerate.generate(parserList);
     return n;
 }

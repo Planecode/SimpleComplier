@@ -98,6 +98,9 @@ class List
     }
     string getTmp()
     {
+        map<string, IdValue *> *idMap = id_map_stack->top();
+        (*idMap)["tmp_" + to_string(tmp_seq)] = new IdValue();
+        (*idMap)["tmp_" + to_string(tmp_seq)]->allocate("int");
         return "tmp_" + to_string(tmp_seq++);
     }
     string getLabel()
