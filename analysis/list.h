@@ -464,7 +464,83 @@ class List
 
     void generate_switch(node *nowNode)
     {
-
+        node *case_list = nowNode->cNode[1]->cNode[0];
+        map<string, string> label_statement;
+        map<string, string> break_statement;
+        node *default_case = 0;
+        string default_label;
+        string break_label;
+        if (nowNode->cNode[1]->cNodeLength == 2)
+        {
+            default_case = nowNode->cNode[1]->cNode[1];
+        }
+        for (int i = 0; i < case_list->cNodeLength; i++)
+        {
+            if (label_statement.count(case_list->cNode[i]->cNode[0]->value) == 0)
+            {
+                string num = case_list->cNode[i]->cNode[0]->value;
+                string label = getLabel();
+                label_statement[num] = label;
+                node *tmp = new node("==", new(node*[2]){nowNode->cNode[0], case_list->cNode[i]->cNode[0]}, 2);
+                node *statement = case_list->cNode[i]->cNode[1];
+                if (statement->cNode[statement->cNodeLength-1]->description == "BREAK")
+                {
+                    break_statement[num] = label;
+                }
+                generate_statement(tmp);
+                ControlJump *control_jump = generate_bool_expression(tmp, "JTrue");
+                if (control_jump->j_true->size() != 0)
+                {
+                    control_jump->jump_true(label);
+                }
+            }
+            else
+            {
+	            cout << "Wrong" << endl;
+            }
+        }
+        if (default_case != 0)
+        {
+            default_label = getLabel();
+            ThreeAddress *j = new ThreeAddress("J", "", "", "");
+            j->result = default_label;
+            push(j);
+        }
+        if (break_statement.size() != 0)
+        {
+            break_label = getLabel();
+        }
+        for (int i = 0; i < case_list->cNodeLength; i++)
+        {
+            string num = case_list->cNode[i]->cNode[0]->value;
+            push(new ThreeAddress("label", "", "", label_statement[num]));
+            generate_statement(case_list->cNode[i]->cNode[1]);
+            if(break_statement.count(num)!=0)
+            {
+                push(new ThreeAddress("J", "", "", break_label));
+            }
+        }
+        if (default_case != 0)
+        {
+            push(new ThreeAddress("label", "", "", default_label));
+            generate_statement(default_case->cNode[0]);
+        }
+        if (break_statement.size() != 0)
+        {
+            push(new ThreeAddress("label", "", "", break_label));
+        }
+    }
+    void add_cNode(node *nowNode, node *newNode)
+    {
+        if(nowNode->description == "&&" && nowNode->cNode[1]->description == "!=")
+        {
+            node *tmp = new node("&&", new(node*[2]){nowNode->cNode[1], newNode}, 2);
+            nowNode->cNode[1] = tmp;
+        }
+        else
+        {
+            add_cNode(nowNode->cNode[1], newNode);
+        }
     }
 };
 #endif // LIST_H_INCLUDED
