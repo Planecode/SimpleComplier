@@ -9,8 +9,7 @@
 
 using namespace std;
 
-set<string> avoidSet = {"id", "number", "str",  "int", "init_var"};
-map<string, IdValue *> idMap;
+set<string> avoidSet = {"id", "number", "str",  "int", "init_var", "dimension_list", "argv_list"};
 
 
 class ThreeAddress
@@ -20,9 +19,8 @@ class ThreeAddress
     string arg1;
     string arg2;
     string result;
-    ThreeAddress *jump;
     ThreeAddress *next;
-    ThreeAddress(string op, string arg1, string arg2, string result):op(op), arg1(arg1), arg2(arg2), result(result), jump(0), next(0)
+    ThreeAddress(string op, string arg1, string arg2, string result):op(op), arg1(arg1), arg2(arg2), result(result), next(0)
     {
 
     }
@@ -48,19 +46,19 @@ class ControlJump
         delete j_true;
         delete j_false;
     }
-    void jump_true(ThreeAddress *tail)
+    void jump_true(string label)
     {
         while(this->j_true->size() != 0)
             {
-                this->j_true->top()->jump = tail;
+                this->j_true->top()->result = label;
                 this->j_true->pop();
             }
     }
-    void jump_false(ThreeAddress *tail)
+    void jump_false(string label)
     {
         while(this->j_false->size() != 0)
             {
-                this->j_false->top()->jump = tail;
+                this->j_false->top()->result = label;
                 this->j_false->pop();
             }
     }
@@ -85,12 +83,14 @@ class List
     public:
     ThreeAddress *head;
     ThreeAddress *tail;
-    stack<string> *id_map_stack;
+    stack<map<string, IdValue *> *> *id_map_stack;
+    stack<ThreeAddress *> *enter_address;
     int tmp_seq;
-    List(): head(0), tail(0), tmp_seq(0)
+    int label_seq;
+    List(): head(0), tail(0), tmp_seq(0), label_seq(0)
     {
-        id_map_stack = new stack<string>();
-        id_map_stack->push("");
+        id_map_stack = new stack<map<string, IdValue *> *>();
+        enter_address = new stack<ThreeAddress *>();
     }
     ~List()
     {
@@ -100,9 +100,9 @@ class List
     {
         return "tmp_" + to_string(tmp_seq++);
     }
-    string getLocalMap()
+    string getLabel()
     {
-        return "local_" + to_string(tmp_seq++);
+        return "label_" + to_string(label_seq++);
     }
     void push(ThreeAddress *three_address)
     {
@@ -118,7 +118,6 @@ class List
             tail->arg1 = three_address->arg1;
             tail->arg2 = three_address->arg2;
             tail->result = three_address->result;
-            tail->jump = tail->jump;
             tail->next = three_address->next;
             delete three_address;
             return;
@@ -131,18 +130,14 @@ class List
         ThreeAddress *p = head;
         while(p != 0)
         {
-            cout << "Address->" << p << " " << p->op << " ";
-            cout << p->arg1 << " ";
-            cout << p->arg2 << " ";
-            if(p->result != "")
-            {
-                    cout << p->result << " ";
-            } 
-            else
-            {
-                cout << "Address->" << p->jump << " ";
-            }
-            cout << endl;
+            cout << p->op << " ";
+            cout << p->arg1;
+            if(p->arg1 != "")
+            cout << " ";
+            cout << p->arg2;
+            if(p->arg2 != "" && p->result != "")
+            cout << " ";
+            cout << p->result << endl;
             p = p->next;
         }
     }
@@ -159,6 +154,9 @@ class List
     }
     void generate_main(node *nowNode)
     {
+        map<string, IdValue *> *idMap = new map<string, IdValue *>();
+        id_map_stack->push(idMap);
+        enter_address->push(tail);
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
@@ -187,6 +185,20 @@ class List
                 generate_calc(cNode);
         }
     }
+
+    int get_index(node *nowNode)
+    {
+        map<string, IdValue *> *idMap = id_map_stack->top();
+        int index = 0;
+        int width = 1;
+        for(int i = nowNode->cNode[1]->cNodeLength - 1; i >= 0; i--)
+        {
+            node *cNode = nowNode->cNode[1]->cNode[i];
+            index += stoi(cNode->value) * width;
+            width *= (*idMap)[nowNode->cNode[0]->value]->array_width[i];
+        }
+        return index;
+    }
     void generate_calc(node *nowNode)
     {
         for(int i = 0; i < nowNode->cNodeLength; i++)
@@ -197,7 +209,23 @@ class List
         if(avoidSet.count(nowNode->description))
             return;
         if(nowNode->description == "=")
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+        {
+            if(nowNode->cNode[0]->description == "array_id")
+            {
+                int index = get_index(nowNode->cNode[0]);
+                push(new ThreeAddress("array=", nowNode->cNode[1]->value, to_string(index), nowNode->cNode[0]->cNode[0]->value));
+            }
+            else
+            {
+                push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+            }
+        }
+        else if(nowNode->description == "array_id")
+        {
+            int index = get_index(nowNode);
+            nowNode->value = getTmp();
+            push(new ThreeAddress("index", nowNode->cNode[0]->value, to_string(index), nowNode->value));
+        }
         else
         {
             if(nowNode->value == "")
@@ -205,6 +233,33 @@ class List
             push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
         }
             
+    }
+
+
+    void generate_init_assign(node *nowNode)
+    {
+        generate_calc(nowNode->cNode[1]);
+        if(nowNode->cNode[0]->description == "array_id")
+        {
+            int index = get_index(nowNode->cNode[0]);
+            node *argv_list = nowNode->cNode[1];
+            for(int i = 0; i < index; i++)
+            {
+                if(i <= argv_list->cNodeLength)
+                {
+                    push(new ThreeAddress("array=", argv_list->cNode[i]->value, to_string(i), nowNode->cNode[0]->cNode[0]->value));
+                }
+                else
+                {
+                    push(new ThreeAddress("array=", argv_list->cNode[i]->value, "0", nowNode->cNode[0]->cNode[0]->value));
+                }
+                
+            }
+        }
+        else
+        {
+            push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+        }   
     }
 
     void install_id(node *nowNode)
@@ -218,6 +273,7 @@ class List
     }
     void local_allocate(node *nowNode, string type)
     {
+        map<string, IdValue *> *idMap = id_map_stack->top();
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
@@ -225,29 +281,44 @@ class List
         }
         if(nowNode->description == "id")
         {
-            if(idMap.count(nowNode->value) == 0)
+            if((*idMap).count(nowNode->value) == 0)
             {
-                idMap[nowNode->value] = new IdValue();
+                (*idMap)[nowNode->value] = new IdValue();
             }
-            idMap[nowNode->value]->allocate(type);
+            (*idMap)[nowNode->value]->allocate(type);
         }
-        else
-            generate_calc(nowNode);
+        else if(nowNode->description == "array_id")
+        {
+            if((*idMap).count(nowNode->cNode[0]->value) == 0)
+            {
+                (*idMap)[nowNode->cNode[0]->value] = new IdValue();
+            }
+            (*idMap)[nowNode->cNode[0]->value]->allocate(type);
+            (*idMap)[nowNode->cNode[0]->value]->array_width = new int(nowNode->cNode[1]->cNodeLength);
+            for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
+            {
+                (*idMap)[nowNode->cNode[0]->value]->array_width[i] = stoi(nowNode->cNode[1]->cNode[i]->value);
+            }
+        }
+        else if(nowNode->description == "=")
+        {
+            generate_init_assign(nowNode);
+        }
     }
 
 
     void generate_while(node *nowNode)
     {
-        ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-        push(tmp);
+        string label = getLabel();
+        push(new ThreeAddress("label", "", "", label));
         ThreeAddress *j = new ThreeAddress("J", "", "", "");
-        j->jump = tail;
+        j->result = label;
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-                push(tmp);
-                control_jump->jump_true(tail);
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_true(label);
             }
         
         if(nowNode->cNode[1]->description == "statement")
@@ -257,9 +328,9 @@ class List
         push(j);
         if(control_jump->j_false->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-                push(tmp);
-                control_jump->jump_false(tail);
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_false(label);
             }
     }
     void generate_for(node *nowNode)
@@ -296,9 +367,9 @@ class List
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-                push(tmp);
-                control_jump->jump_true(tail);
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_true(label);
             }
         if(nowNode->cNode[1]->description == "statement")
             generate_statement(nowNode->cNode[1]);
@@ -306,14 +377,14 @@ class List
             generate_calc(nowNode->cNode[1]);
         if(control_jump->j_false->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-                push(tmp);
-                control_jump->jump_false(tail);
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_false(label);
             }
         if(elseNode != 0)
         {
             ThreeAddress *j = new ThreeAddress("J", "", "", "");
-            if(tail->op == "")
+            if(tail->op == "label")
                 {
                     ThreeAddress *tmp = head;
                     while(tmp->next != tail)
@@ -328,9 +399,10 @@ class List
                     push(j);
                 }
             generate_statement(elseNode);
-            ThreeAddress *tmp = new ThreeAddress("", "", "", "");
+            string label = getLabel();
+            ThreeAddress *tmp = new ThreeAddress("label", "", "", label);
             push(tmp);
-            j->jump = tail;
+            j->result = label;
         }
     }
     ControlJump *generate_bool_expression(node *nowNode, string end)
@@ -340,9 +412,9 @@ class List
             ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JTrue");
             if(control_jump->j_false->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-                push(tmp);
-                control_jump->jump_false(tail);
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_false(label);
             }
             ControlJump * tmp = generate_bool_expression(nowNode->cNode[1], end);
             control_jump->unit_jump(tmp);
@@ -354,9 +426,9 @@ class List
             ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
             if(control_jump->j_true->size() != 0)
             {
-                ThreeAddress *tmp = new ThreeAddress("", "", "", "");
-                push(tmp);
-                control_jump->jump_true(tail);
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_true(label);
             }
             ControlJump * tmp = generate_bool_expression(nowNode->cNode[1], end);
             control_jump->unit_jump(tmp);
@@ -364,7 +436,7 @@ class List
             return control_jump;
         }
         generate_calc(nowNode);
-        ThreeAddress *j_end = new ThreeAddress(end, nowNode->value, "", "");
+        ThreeAddress *j_end = new ThreeAddress(end + nowNode->description, nowNode->value, "", "");
         if(tail->op == "")
         {
             ThreeAddress *tmp = head;

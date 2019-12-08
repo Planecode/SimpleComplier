@@ -11,7 +11,8 @@ class IdValue
     public:
     string type;
     int width;
-    IdValue(): type("None"), width(0)
+    int *array_width;
+    IdValue(): type("None"), width(0), array_width(0)
     {
 
     }
