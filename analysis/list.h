@@ -357,6 +357,8 @@ class List
         }
         if(control_jump->j_false->size() != 0)
         {
+            string label = getLabel();
+            push(new ThreeAddress("label", "", "", label));
             control_jump->jump_false(label);
         }
     }
