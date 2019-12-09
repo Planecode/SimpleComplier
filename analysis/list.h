@@ -103,10 +103,6 @@ class List
         (*idMap)["tmp_" + to_string(tmp_seq)]->allocate("int");
         return "tmp_" + to_string(tmp_seq++);
     }
-    string nowTmp()
-    {
-        return "tmp_" + to_string(tmp_seq);
-    }
     string getLabel()
     {
         return "label_" + to_string(label_seq++);
