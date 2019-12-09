@@ -360,7 +360,7 @@ CodeGenerate codeGenerate;
     ;
 
     pointer_var: MUL var {$$ = $2;}
-    | MUL LP var RP {$$ = $3;}
+    | MUL parenthesized_expression {$$ = $3;}
     ;
 
     parenthesized_expression: LP expression RP {$$ = $2;}

@@ -224,9 +224,35 @@ class List
                 int index = get_index(nowNode->cNode[0]);
                 push(new ThreeAddress("array=", nowNode->cNode[1]->value, to_string(index), nowNode->cNode[0]->cNode[0]->value));
             }
+			else if (nowNode->cNode[0]->description == "pointer")
+			{
+				if (nowNode->cNode[0]->cNode[0]->description == "id")
+				{  // *p
+					push(new ThreeAddress("=[]", nowNode->cNode[1]->value, "0", nowNode->cNode[0]->value));
+				}
+				else
+				{  // *(p+ expression)
+					push(new ThreeAddress("=[]", nowNode->cNode[1]->value, nowNode->cNode[0]->cNode[0]->cNode[1]->value, nowNode->cNode[0]->cNode[0]->cNode[0]->value));
+				}
+			}
             else
             {
-                push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+                if(nowNode->cNode[0]->description == "id" && nowNode->cNode[1]->description == "id")
+                {
+                    map<string, IdValue *> *idMap = id_map_stack->top();
+                    string id_l = nowNode->cNode[0]->value;
+                    string id_r = nowNode->cNode[1]->value;
+					if ((*idMap)[id_r]->array_width != 0)
+					{  // pointer_var = array_var
+						(*idMap)[id_l]->array_width = (*idMap)[id_r]->array_width;
+						push(new ThreeAddress("=[]", nowNode->cNode[1]->value, "0", nowNode->cNode[0]->value));
+					}
+					else
+						push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+                }
+				else
+					push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+                
             }
         }
         else if(nowNode->description == "array_id")
@@ -235,12 +261,60 @@ class List
             nowNode->value = getTmp();
             push(new ThreeAddress("index", nowNode->cNode[0]->value, to_string(index), nowNode->value));
         }
+		else if (nowNode->description == "pointer")
+		{
+			nowNode->value = getTmp();
+			if (nowNode->cNode[0]->description == "id")
+			{
+				push(new ThreeAddress("index", nowNode->cNode[0]->value, "0", nowNode->value));
+			}
+			else
+			{
+				push(new ThreeAddress("index", nowNode->cNode[0]->cNode[0]->value, nowNode->cNode[0]->cNode[1]->value, nowNode->value));
+			}
+			
+		}
         else
         {
-            if(nowNode->value == "")
-                nowNode->value = getTmp();
-            push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-        }       
+			map<string, IdValue *> *idMap = id_map_stack->top();
+			if (nowNode->cNode[0]->description == "id" && nowNode->cNode[1]->description != "id")
+			{ // avoid generate p+expression in *(p+expression), expression is index
+				string id_l = nowNode->cNode[0]->value;
+				if ((*idMap)[id_l]->array_width == 0)
+				{
+					if (nowNode->value == "")
+						nowNode->value = getTmp();
+					push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+				}
+			}
+			else if (nowNode->cNode[0]->description != "id" && nowNode->cNode[1]->description == "id")
+			{
+				string id_r = nowNode->cNode[1]->value;
+				if ((*idMap)[id_r]->array_width == 0)
+				{
+					if (nowNode->value == "")
+						nowNode->value = getTmp();
+					push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+				}
+			}
+			else if (nowNode->cNode[0]->description == "id" && nowNode->cNode[1]->description == "id")
+			{
+				string id_l = nowNode->cNode[0]->value;
+				string id_r = nowNode->cNode[1]->value;
+				if ((*idMap)[id_l]->array_width == 0 && (*idMap)[id_r]->array_width == 0)
+				{
+					if (nowNode->value == "")
+						nowNode->value = getTmp();
+					push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+				}
+			}
+			else
+			{
+				if (nowNode->value == "")
+					nowNode->value = getTmp();
+				push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+			}
+        }
     }
 
 
@@ -264,6 +338,18 @@ class List
                 
             }
         }
+        else if (nowNode->cNode[0]->description == "pointer")
+		{
+			map<string, IdValue *> *idMap = id_map_stack->top();
+			if (nowNode->cNode[0]->cNode[0]->description == "id")
+			{
+				if ((*idMap)[nowNode->cNode[1]->value]->array_width != 0)
+				{
+					(*idMap)[nowNode->cNode[0]->cNode[0]->value]->array_width = (*idMap)[nowNode->cNode[1]->value]->array_width;
+				}
+				push(new ThreeAddress("=[]", nowNode->cNode[1]->value, "0", nowNode->cNode[0]->cNode[0]->value));
+			}
+		}
         else
         {
             push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
