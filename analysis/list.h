@@ -103,6 +103,10 @@ class List
         (*idMap)["tmp_" + to_string(tmp_seq)]->allocate("int");
         return "tmp_" + to_string(tmp_seq++);
     }
+    string nowTmp()
+    {
+        return "tmp_" + to_string(tmp_seq);
+    }
     string getLabel()
     {
         return "label_" + to_string(label_seq++);
@@ -189,6 +193,33 @@ class List
         }
     }
 
+    void generate_statement(node *nowNode, ControlJump *control_jump)
+    {
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            if(cNode->description == "conditional_statement")
+                generate_conditional(cNode);
+            else if(cNode->description == "while_statement")
+                generate_while(cNode);
+            else if(cNode->description == "for_statement")
+                generate_for(cNode);
+            else if(cNode->description == "do_while_statement")
+                generate_do_while(cNode);
+            else if(cNode->description == "init_var")
+                install_id(cNode);
+            else if(cNode->description  == "BREAK")
+                {
+                    ThreeAddress *j_end = new ThreeAddress("J", "", "", "");
+                    push(j_end);
+                    control_jump->j_true->push(j_end);
+                }
+            else
+                generate_calc(cNode);
+        }
+    }
+
+
     int get_index(node *nowNode)
     {
         map<string, IdValue *> *idMap = id_map_stack->top();
@@ -234,8 +265,7 @@ class List
             if(nowNode->value == "")
                 nowNode->value = getTmp();
             push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-        }
-            
+        }       
     }
 
 
@@ -457,20 +487,7 @@ class List
         }
         generate_calc(nowNode);
         ThreeAddress *j_end = new ThreeAddress(end + nowNode->description, nowNode->value, "", "");
-        if(tail->op == "")
-        {
-            ThreeAddress *tmp = head;
-            while(tmp->next != tail)
-            {
-                tmp = tmp->next;
-            }
-            tmp->next = j_end;
-            j_end->next = tail;
-        }
-        else
-        {
-            push(j_end);
-        }
+        push(j_end);
         ControlJump *control_jump = new ControlJump();
         if(end == "JTrue")
             control_jump->j_true->push(j_end);
@@ -479,9 +496,36 @@ class List
         return control_jump;
     }
 
+
+    void generate_case(node *nowNode, string cmp)
+    {
+        ControlJump *control_jump = new ControlJump();
+        for(int i = 0; i < nowNode->cNode[0]->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[0]->cNode[i];
+            cNode->value = getTmp();
+            push(new ThreeAddress("==", cmp, cNode->cNode[0]->value, cNode->value));
+            string label = getLabel();
+            push(new ThreeAddress("JFalse==", cNode->value, "", label));
+            generate_statement(cNode->cNode[1], control_jump);
+            push(new ThreeAddress("label", "", "", label));
+        }
+        if(nowNode->cNodeLength == 2)
+        {
+            generate_statement(nowNode->cNode[1]->cNode[0]);
+        }
+        if(control_jump->j_true->size() != 0)
+            {
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_true(label);
+            }
+    }
     void generate_switch(node *nowNode)
     {
-
+        generate_calc(nowNode->cNode[0]);
+        generate_case(nowNode->cNode[1], nowNode->cNode[0]->value);
     }
+    
 };
 #endif // LIST_H_INCLUDED
