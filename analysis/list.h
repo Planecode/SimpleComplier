@@ -248,13 +248,13 @@ class List
             node *argv_list = nowNode->cNode[1];
             for(int i = 0; i < index; i++)
             {
-                if(i <= argv_list->cNodeLength)
+                if(i < argv_list->cNodeLength)
                 {
                     push(new ThreeAddress("array=", argv_list->cNode[i]->value, to_string(i), nowNode->cNode[0]->cNode[0]->value));
                 }
                 else
                 {
-                    push(new ThreeAddress("array=", argv_list->cNode[i]->value, "0", nowNode->cNode[0]->cNode[0]->value));
+                    push(new ThreeAddress("array=", "0", to_string(i), nowNode->cNode[0]->cNode[0]->value));
                 }
                 
             }
@@ -343,7 +343,24 @@ class List
 
     void generate_do_while(node *nowNode)
     {
-
+        string label = getLabel();
+        push(new ThreeAddress("label", "", "", label));
+        if(nowNode->cNode[0]->description == "statement")
+            generate_statement(nowNode->cNode[0]);
+        else
+            generate_calc(nowNode->cNode[0]);
+        
+        ControlJump *control_jump = generate_bool_expression(nowNode->cNode[1], "JTrue");
+        if(control_jump->j_true->size() != 0)
+        {
+            control_jump->jump_true(label);
+        }
+        if(control_jump->j_false->size() != 0)
+        {
+            string label = getLabel();
+            push(new ThreeAddress("label", "", "", label));
+            control_jump->jump_false(label);
+        }
     }
 
     void generate_conditional(node *nowNode)
