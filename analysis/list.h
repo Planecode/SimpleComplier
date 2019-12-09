@@ -173,27 +173,7 @@ class List
                 generate_statement(cNode);
         }
     }
-    void generate_statement(node *nowNode)
-    {
-        for(int i = 0; i < nowNode->cNodeLength; i++)
-        {
-            node *cNode = nowNode->cNode[i];
-            if(cNode->description == "conditional_statement")
-                generate_conditional(cNode);
-            else if(cNode->description == "while_statement")
-                generate_while(cNode);
-            else if(cNode->description == "for_statement")
-                generate_for(cNode);
-            else if(cNode->description == "do_while_statement")
-                generate_do_while(cNode);
-            else if(cNode->description == "init_var")
-                install_id(cNode);
-            else
-                generate_calc(cNode);
-        }
-    }
-
-    void generate_statement(node *nowNode, ControlJump *control_jump)
+    void generate_statement(node *nowNode, ControlJump *control_jump=0)
     {
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
@@ -218,7 +198,6 @@ class List
                 generate_calc(cNode);
         }
     }
-
 
     int get_index(node *nowNode)
     {
