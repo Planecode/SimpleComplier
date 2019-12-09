@@ -169,7 +169,7 @@ class List
                 generate_statement(cNode);
         }
     }
-    void generate_statement(node *nowNode)
+    void generate_statement(node *nowNode, ControlJump *control_jump=0)
     {
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
@@ -184,6 +184,12 @@ class List
                 generate_do_while(cNode);
             else if(cNode->description == "init_var")
                 install_id(cNode);
+            else if(cNode->description  == "BREAK")
+                {
+                    ThreeAddress *j_end = new ThreeAddress("J", "", "", "");
+                    push(j_end);
+                    control_jump->j_true->push(j_end);
+                }
             else
                 generate_calc(cNode);
         }
@@ -234,8 +240,7 @@ class List
             if(nowNode->value == "")
                 nowNode->value = getTmp();
             push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-        }
-            
+        }       
     }
 
 
@@ -457,20 +462,7 @@ class List
         }
         generate_calc(nowNode);
         ThreeAddress *j_end = new ThreeAddress(end + nowNode->description, nowNode->value, "", "");
-        if(tail->op == "")
-        {
-            ThreeAddress *tmp = head;
-            while(tmp->next != tail)
-            {
-                tmp = tmp->next;
-            }
-            tmp->next = j_end;
-            j_end->next = tail;
-        }
-        else
-        {
-            push(j_end);
-        }
+        push(j_end);
         ControlJump *control_jump = new ControlJump();
         if(end == "JTrue")
             control_jump->j_true->push(j_end);
@@ -479,9 +471,54 @@ class List
         return control_jump;
     }
 
+
+    void generate_case(node *nowNode, string cmp)
+    {
+        ControlJump *control_jump = new ControlJump();
+        for(int i = 0; i < nowNode->cNode[0]->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[0]->cNode[i];
+            cNode->value = getTmp();
+            push(new ThreeAddress("==", cmp, cNode->cNode[0]->value, cNode->value));
+            string label = getLabel();
+            push(new ThreeAddress("JTrue==", cNode->value, "", label));
+            cNode->value = label;
+        }
+        ThreeAddress *j = new ThreeAddress("J", "", "", "");
+        push(j);
+        for(int i = 0; i < nowNode->cNode[0]->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[0]->cNode[i];
+            push(new ThreeAddress("label", "", "", cNode->value));
+            generate_statement(cNode->cNode[1], control_jump);
+        }
+        string label = getLabel();
+        push(new ThreeAddress("label", "", "", label));
+        j->result = label;
+        if(nowNode->cNodeLength == 2)
+        {
+            generate_statement(nowNode->cNode[1]->cNode[0]);
+            if(control_jump->j_true->size() != 0)
+            {
+                string label = getLabel();
+                push(new ThreeAddress("label", "", "", label));
+                control_jump->jump_true(label);
+            }
+        }
+        else
+        {
+            if(control_jump->j_true->size() != 0)
+            {
+                control_jump->jump_true(label);
+            }
+        }
+        
+    }
     void generate_switch(node *nowNode)
     {
-
+        generate_calc(nowNode->cNode[0]);
+        generate_case(nowNode->cNode[1], nowNode->cNode[0]->value);
     }
+    
 };
 #endif // LIST_H_INCLUDED
