@@ -481,20 +481,38 @@ class List
             cNode->value = getTmp();
             push(new ThreeAddress("==", cmp, cNode->cNode[0]->value, cNode->value));
             string label = getLabel();
-            push(new ThreeAddress("JFalse==", cNode->value, "", label));
-            generate_statement(cNode->cNode[1], control_jump);
-            push(new ThreeAddress("label", "", "", label));
+            push(new ThreeAddress("JTrue==", cNode->value, "", label));
+            cNode->value = label;
         }
+        ThreeAddress *j = new ThreeAddress("J", "", "", "");
+        push(j);
+        for(int i = 0; i < nowNode->cNode[0]->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[0]->cNode[i];
+            push(new ThreeAddress("label", "", "", cNode->value));
+            generate_statement(cNode->cNode[1], control_jump);
+        }
+        string label = getLabel();
+        push(new ThreeAddress("label", "", "", label));
+        j->result = label;
         if(nowNode->cNodeLength == 2)
         {
             generate_statement(nowNode->cNode[1]->cNode[0]);
-        }
-        if(control_jump->j_true->size() != 0)
+            if(control_jump->j_true->size() != 0)
             {
                 string label = getLabel();
                 push(new ThreeAddress("label", "", "", label));
                 control_jump->jump_true(label);
             }
+        }
+        else
+        {
+            if(control_jump->j_true->size() != 0)
+            {
+                control_jump->jump_true(label);
+            }
+        }
+        
     }
     void generate_switch(node *nowNode)
     {
