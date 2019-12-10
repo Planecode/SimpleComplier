@@ -11,6 +11,12 @@
 using namespace std;
 
 set<string> avoidSet = {"id", "number", "str",  "int", "init_var", "dimension_list", "argv_list"};
+map<string, string> bool_jump = {
+    {"JTrue>", "jg"}, {"JTrue==", "je"}, {"JTrue<", "jl"}, {"JTrue>=", "jge"}, {"JTrue<=", "jle"}, {"JTrue!=", "jne"}, 
+    {"JFalse>", "jle"}, {"JFalse==", "jne"}, {"JFalse<", "jge"}, {"JFalse>=", "jl"}, {"JFalse<=", "jg"}, {"JFalse!=", "je"}, 
+    };
+
+set<string> cmpSet{">", ">=", "<=", "<", "=="};
 
 
 class ThreeAddress
@@ -76,7 +82,12 @@ class ControlJump
                 tmp->j_false->pop();
             }
     }
-
+    void switch_true_false()
+    {
+        stack<ThreeAddress *> *tmp = j_true;
+        j_true = j_false;
+        j_false = tmp;
+    }
 };
 
 class List
@@ -260,8 +271,17 @@ class List
         else
         {
             if (nowNode->value == "")
+            {
                 nowNode->value = getTmp();
+            }
+            if(cmpSet.count(nowNode->description))
+            {
+                push(new ThreeAddress("cmp", nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+            }
+            else
+            {
                 push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
+            }
         }
     }
 
@@ -363,7 +383,7 @@ class List
     {
         string label = getLabel();
         push(new ThreeAddress("label", "", "", label));
-        ThreeAddress *j = new ThreeAddress("J", "", "", "");
+        ThreeAddress *j = new ThreeAddress("jmp", "", "", "");
         j->result = label;
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
@@ -452,7 +472,7 @@ class List
             }
         if(elseNode != 0)
         {
-            ThreeAddress *j = new ThreeAddress("J", "", "", "");
+            ThreeAddress *j = new ThreeAddress("jmp", "", "", "");
             if(tail->op == "label")
                 {
                     ThreeAddress *tmp = head;
@@ -490,7 +510,7 @@ class List
             delete tmp;
             return control_jump;
         }
-        if(nowNode->description == "&&")
+        else if(nowNode->description == "&&")
         {
             ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
             if(control_jump->j_true->size() != 0)
@@ -504,14 +524,32 @@ class List
             delete tmp;
             return control_jump;
         }
+        else if(nowNode->description == "!")
+        {
+            if(end == "JTrue")
+            {
+                end = "JFalse";
+            }
+            else
+            {
+                end = "JTrue";
+            }
+            ControlJump * control_jump = generate_bool_expression(nowNode->cNode[0], end);
+            control_jump->switch_true_false();
+            return control_jump;
+        }
         generate_calc(nowNode);
-        ThreeAddress *j_end = new ThreeAddress(end + nowNode->description, nowNode->value, "", "");
+        ThreeAddress *j_end = new ThreeAddress(bool_jump[end + nowNode->description], nowNode->value, "", "");
         push(j_end);
         ControlJump *control_jump = new ControlJump();
         if(end == "JTrue")
+        {
             control_jump->j_true->push(j_end);
+        }
         else
+        {
             control_jump->j_false->push(j_end);
+        }
         return control_jump;
     }
 
