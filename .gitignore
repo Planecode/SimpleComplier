@@ -3,6 +3,7 @@
 !/analysis/tree.h
 !/analysis/list.h
 !/analysis/code.h
+!/analysis/check.h
 /analysis/*.v
 /analysis/*.pgp
 /analysis/*.pgw

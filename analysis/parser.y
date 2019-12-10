@@ -235,7 +235,7 @@ CodeGenerate codeGenerate;
     ;
 
     argv_body: argv_list {$$ = $1;}
-    | {$$ = 0;}
+    | {$$ = new node("argv_list", 0, 0);}
     ;
 
     argv_list: declaration_expression COMMA argv_list {
