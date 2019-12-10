@@ -174,6 +174,7 @@ class List
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
+            cout << cNode->description<<endl;
             if(cNode->description == "conditional_statement")
                 generate_conditional(cNode);
             else if(cNode->description == "while_statement")
@@ -208,11 +209,34 @@ class List
         }
         return index;
     }
+    void generate_pointer_expression(node *nowNode)
+    {
+        if(nowNode->cNode[0]->description == "id")
+        {
+            nowNode->value = nowNode->cNode[0]->value;
+        }
+    }
+    void generate_array_expression(node *nowNode)
+    {
+        int index = get_index(nowNode);
+        nowNode->value = getTmp();
+        push(new ThreeAddress("index", nowNode->cNode[0]->value, to_string(index), nowNode->value));
+    }
     void generate_calc(node *nowNode)
     {
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
+            if(cNode->description == "pointer")
+            {
+                generate_pointer_expression(cNode);
+                continue;
+            }
+            if(cNode->description == "array_id")
+            {
+                generate_array_expression(cNode);
+                continue;
+            }
             generate_calc(cNode);
         }
         if(avoidSet.count(nowNode->description))
@@ -222,157 +246,30 @@ class List
             if(nowNode->cNode[0]->description == "array_id")
             {
                 int index = get_index(nowNode->cNode[0]);
-                push(new ThreeAddress("array=", nowNode->cNode[1]->value, to_string(index), nowNode->cNode[0]->cNode[0]->value));
+                push(new ThreeAddress("[]=", nowNode->cNode[1]->value, to_string(index), nowNode->cNode[0]->cNode[0]->value));
             }
 			else if (nowNode->cNode[0]->description == "pointer")
 			{
-				if (nowNode->cNode[0]->cNode[0]->description == "id")
-				{  // *p
-					push(new ThreeAddress("=[]", nowNode->cNode[1]->value, "0", nowNode->cNode[0]->value));
-				}
-				else
-				{  // *(p+ expression)
-					push(new ThreeAddress("=[]", nowNode->cNode[1]->value, nowNode->cNode[0]->cNode[0]->cNode[1]->value, nowNode->cNode[0]->cNode[0]->cNode[0]->value));
-				}
+                push(new ThreeAddress("p=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
 			}
             else
             {
-                if(nowNode->cNode[0]->description == "id" && nowNode->cNode[1]->description == "id")
-                {
-                    map<string, IdValue *> *idMap = id_map_stack->top();
-                    string id_l = nowNode->cNode[0]->value;
-                    string id_r = nowNode->cNode[1]->value;
-					if ((*idMap)[id_r]->array_width != 0)
-					{  // pointer_var = array_var
-						(*idMap)[id_l]->array_width = (*idMap)[id_r]->array_width;
-						push(new ThreeAddress("=[]", nowNode->cNode[1]->value, "0", nowNode->cNode[0]->value));
-					}
-					else
-						push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
-                }
-				else
-					push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
-                
+				push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
             }
         }
-        else if(nowNode->description == "array_id")
-        {
-            int index = get_index(nowNode);
-            nowNode->value = getTmp();
-            push(new ThreeAddress("index", nowNode->cNode[0]->value, to_string(index), nowNode->value));
-        }
-		else if (nowNode->description == "pointer")
-		{
-			nowNode->value = getTmp();
-			if (nowNode->cNode[0]->description == "id")
-			{
-				push(new ThreeAddress("index", nowNode->cNode[0]->value, "0", nowNode->value));
-			}
-			else
-			{
-				push(new ThreeAddress("index", nowNode->cNode[0]->cNode[0]->value, nowNode->cNode[0]->cNode[1]->value, nowNode->value));
-			}
-			
-		}
         else
         {
-			map<string, IdValue *> *idMap = id_map_stack->top();
-			if (nowNode->cNode[0]->description == "id" && nowNode->cNode[1]->description != "id")
-			{ // avoid generate p+expression in *(p+expression), expression is index
-				string id_l = nowNode->cNode[0]->value;
-				if ((*idMap)[id_l]->array_width == 0)
-				{
-					if (nowNode->value == "")
-						nowNode->value = getTmp();
-					push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-				}
-			}
-			else if (nowNode->cNode[0]->description != "id" && nowNode->cNode[1]->description == "id")
-			{
-				string id_r = nowNode->cNode[1]->value;
-				if ((*idMap)[id_r]->array_width == 0)
-				{
-					if (nowNode->value == "")
-						nowNode->value = getTmp();
-					push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-				}
-			}
-			else if (nowNode->cNode[0]->description == "id" && nowNode->cNode[1]->description == "id")
-			{
-				string id_l = nowNode->cNode[0]->value;
-				string id_r = nowNode->cNode[1]->value;
-				if ((*idMap)[id_l]->array_width == 0 && (*idMap)[id_r]->array_width == 0)
-				{
-					if (nowNode->value == "")
-						nowNode->value = getTmp();
-					push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-				}
-			}
-			else
-			{
-				if (nowNode->value == "")
+			if (nowNode->value == "")
 					nowNode->value = getTmp();
 				push(new ThreeAddress(nowNode->description, nowNode->cNode[0]->value, nowNode->cNode[1]->value, nowNode->value));
-			}
         }
     }
 
 
-    void generate_init_assign(node *nowNode)
-    {
-        generate_calc(nowNode->cNode[1]);
-        if(nowNode->cNode[0]->description == "array_id")
-        {
-            int index = get_index(nowNode->cNode[0]);
-            node *argv_list = nowNode->cNode[1];
-            for(int i = 0; i < index; i++)
-            {
-                if(i < argv_list->cNodeLength)
-                {
-                    push(new ThreeAddress("array=", argv_list->cNode[i]->value, to_string(i), nowNode->cNode[0]->cNode[0]->value));
-                }
-                else
-                {
-                    push(new ThreeAddress("array=", "0", to_string(i), nowNode->cNode[0]->cNode[0]->value));
-                }
-                
-            }
-        }
-        else if (nowNode->cNode[0]->description == "pointer")
-		{
-			map<string, IdValue *> *idMap = id_map_stack->top();
-			if (nowNode->cNode[0]->cNode[0]->description == "id")
-			{
-				if ((*idMap)[nowNode->cNode[1]->value]->array_width != 0)
-				{
-					(*idMap)[nowNode->cNode[0]->cNode[0]->value]->array_width = (*idMap)[nowNode->cNode[1]->value]->array_width;
-				}
-				push(new ThreeAddress("=[]", nowNode->cNode[1]->value, "0", nowNode->cNode[0]->cNode[0]->value));
-			}
-		}
-        else
-        {
-            push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
-        }   
-    }
 
-    void install_id(node *nowNode)
-    {
-        string type = nowNode->cNode[0]->description;
-        for(int i = 1; i < nowNode->cNodeLength; i++)
-        {
-            node *cNode = nowNode->cNode[i];
-            local_allocate(cNode, type);
-        }
-    }
     void local_allocate(node *nowNode, string type)
     {
         map<string, IdValue *> *idMap = id_map_stack->top();
-        for(int i = 0; i < nowNode->cNodeLength; i++)
-        {
-            node *cNode = nowNode->cNode[i];
-            local_allocate(cNode, type);
-        }
         if(nowNode->description == "id")
         {
             if((*idMap).count(nowNode->value) == 0)
@@ -394,9 +291,55 @@ class List
                 (*idMap)[nowNode->cNode[0]->value]->array_width[i] = stoi(nowNode->cNode[1]->cNode[i]->value);
             }
         }
-        else if(nowNode->description == "=")
+        else if(nowNode->description == "pointer")
         {
-            generate_init_assign(nowNode);
+            
+        }
+    }
+    void generate_init_assign(node *nowNode, string type)
+    {
+        local_allocate(nowNode->cNode[0], type);
+        if(nowNode->cNode[0]->description == "array_id")
+        {
+            int index = get_index(nowNode->cNode[0]);
+            node *argv_list = nowNode->cNode[1];
+            for(int i = 0; i < index; i++)
+            {
+                if(i < argv_list->cNodeLength)
+                {
+                    push(new ThreeAddress("[]=", argv_list->cNode[i]->value, to_string(i), nowNode->cNode[0]->cNode[0]->value));
+                }
+                else
+                {
+                    push(new ThreeAddress("[]=", "0", to_string(i), nowNode->cNode[0]->cNode[0]->value));
+                }
+                
+            }
+        }
+        else if (nowNode->cNode[0]->description == "pointer")
+		{
+                push(new ThreeAddress("p=", nowNode->cNode[0]->value, "", nowNode->cNode[1]->value));
+		}
+        else
+        {
+            generate_calc(nowNode->cNode[1]);
+            push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+        }
+    }
+    void install_id(node *nowNode)
+    {
+        string type = nowNode->cNode[0]->description;
+        for(int i = 1; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            if(cNode->description == "=")
+            {
+                generate_init_assign(cNode, type);
+            }
+            else
+            {
+                local_allocate(cNode, type);
+            }
         }
     }
 
