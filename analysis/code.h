@@ -7,9 +7,9 @@
 #include <map>
 #include <set>
 
-map<string, int> keyMap{{"=", 0}, {"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"int", 5}, {"char", 6}, {"double", 7}, {"label", 8}, {"cmp", 9}, 
-{"J", 10}};
-set<string> cmpMap{">", ">=", "<=", "<", "=="};
+map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"int", 5}, {"char", 6}, {"double", 7}, {"label", 8}, {"cmp", 9}, 
+{"J", 10}, {"=", 11}, {"JTrue==", 12}, {"JFalse!=", 12}};
+set<string> cmpMap{">", ">=", "<=", "<", "==", "!="};
 
 class CodeGenerate
 {
@@ -49,12 +49,17 @@ class CodeGenerate
         ThreeAddress *p = parserList.head;
         while(p != 0)
         {
+            if(cmpMap.count(p->op))
+            {
+                p->op = "cmp";
+            }
             switch(keyMap[p->op])
             {
                 // =
-                case 0: 
+                case 11: 
                 {
-                    code << "mov DWORD PTR " << p->result << ", DWORD PTR " << p->arg1 << endl;
+                    code << "mov eax, DWORD PTR " << p->arg1 << endl;
+                    code << "mov DWORD PTR " << p->result << ", eax" << endl;
                     break;
                 }
                 // +
@@ -88,6 +93,31 @@ class CodeGenerate
                     code << "cdq" << p->arg1 << endl;
                     code << "idiv DWORD PTR " << p->arg2 << endl;
                     code << "mov DWORD PTR " << p->result << ", eax" << endl;
+                    break;
+                }
+                // label
+                case 8: 
+                {
+                    code << "$" << p->result << endl;
+                    break;
+                }
+                // cmp
+                case 9: 
+                {
+                    code << "mov eax, DWORD PTR " << p->arg2 << endl;
+                    code << "cmp DWORD PTR " << p->arg1 << ", eax" << endl;
+                    break;
+                }
+                // jmp
+                case 10: 
+                {
+                    code << "jmp SHORT $" << p->result << endl;
+                    break;
+                }
+                // je
+                case 12: 
+                {
+                    code << "je SHORT $" << p->result << endl;
                     break;
                 }
             }
