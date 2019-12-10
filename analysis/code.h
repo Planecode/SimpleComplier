@@ -58,10 +58,6 @@ class CodeGenerate
         ThreeAddress *p = parserList.head;
         while(p != 0)
         {
-            if(cmpMap.count(p->op))
-            {
-                p->op = "cmp";
-            }
             switch(keyMap[p->op])
             {
                 // +
