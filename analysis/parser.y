@@ -235,7 +235,7 @@ CodeGenerate codeGenerate;
     ;
 
     argv_body: argv_list {$$ = $1;}
-    | {$$ = 0;}
+    | {$$ = new node("argv_list", 0, 0);}
     ;
 
     argv_list: declaration_expression COMMA argv_list {
@@ -360,7 +360,7 @@ CodeGenerate codeGenerate;
     ;
 
     pointer_var: MUL var {$$ = $2;}
-    | MUL LP var RP {$$ = $3;}
+    | MUL parenthesized_expression {$$ = $3;}
     ;
 
     parenthesized_expression: LP expression RP {$$ = $2;}

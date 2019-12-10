@@ -10,9 +10,12 @@ class IdValue
 {
     public:
     string type;
+    bool is_pointer;
+    bool is_array;
     int width;
     int *array_width;
-    IdValue(): type("None"), width(0), array_width(0)
+    int dimension;
+    IdValue(): type("None"), width(0), array_width(0), is_array(0), is_pointer(0)
     {
 
     }
@@ -23,15 +26,29 @@ class IdValue
     void allocate(string type_name)
     {
         this->type = type_name;
-        if(type_name == "int")
+        if(is_pointer)
         {
             width = 4;
             return;
         }
-        if(type_name == "double")
+        else if(type_name == "int")
+        {
+            width = 4;
+        }
+        else if(type_name == "double")
         {
             width = 8;
-            return;
+        }
+        else if(type_name == "char")
+        {
+            width = 1;
+        }
+        if(is_array)
+        {
+            for(int i = 0; i < dimension; i++)
+            {
+                width *= array_width[i];
+            }
         }
     }
 };
