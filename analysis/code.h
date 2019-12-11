@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include "list.h"
+#include "table.h"
 #include <map>
 #include <set>
 
@@ -133,9 +134,7 @@ class CodeGenerate
     void generate(List &parserList)
     {
         code.open(asm_path);
-        map<string, IdValue *> *idMap = parserList.id_map_stack->top();
         code << commonHeader;
-        generateData(idMap);
         generateCode(parserList);
         code.close();
     }
