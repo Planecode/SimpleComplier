@@ -4,6 +4,7 @@
 !/analysis/list.h
 !/analysis/code.h
 !/analysis/check.h
+!/analysis/table.h
 /analysis/*.v
 /analysis/*.pgp
 /analysis/*.pgw
