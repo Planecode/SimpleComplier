@@ -15,7 +15,6 @@ ParserWizard generated YACC file.
 using namespace std;
 tree parserTree;
 List parserList;
-CodeGenerate codeGenerate;
 %}
 %token ASSIGN EQ GT LT
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN
@@ -398,6 +397,7 @@ int main(void)
     parserTree.print(parserTree.root, "");
     parserList.generate(parserTree.root);
     parserList.print();
+    CodeGenerate codeGenerate(sFile);
     codeGenerate.generate(parserList);
     return n;
 }

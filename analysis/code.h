@@ -7,17 +7,35 @@
 #include <map>
 #include <set>
 
-map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"int", 5}, {"char", 6}, {"double", 7}, {"label", 8}, {"cmp", 9}, 
-{"J", 10}, {"=", 11}, {"JTrue==", 12}, {"JFalse!=", 12}};
-set<string> cmpMap{">", ">=", "<=", "<", "==", "!="};
+map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
+{"j", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}};
+
+string commonHeader = ".386\n"
+".model flat, stdcall\n"
+"option casemap:none\n"
+"include \\masm32\\include\\windows.inc\n"
+"include \\masm32\\include\\user32.inc\n"
+"include \\masm32\\include\\kernel32.inc\n"
+"includelib \\masm32\\lib\user32.lib\n"
+"includelib \\masm32\\lib\\kernel32.lib\n";
 
 class CodeGenerate
 {
     ofstream code;
+    string asm_path;
     public:
-    CodeGenerate()
+    CodeGenerate(string c_path)
     {
-        code.open("out.asm");
+        asm_path = "out.asm";
+        for(int i = c_path.length(); i >= 0; i--)
+        {
+            if(c_path[i] == '.')
+            {
+                asm_path = c_path.substr(0, i);
+                asm_path += ".asm";
+                break;
+            }
+        }
     }
     ~CodeGenerate()
     {
@@ -25,7 +43,7 @@ class CodeGenerate
     }
     void generateData(map<string, IdValue *> *idMap)
     {
-        code << endl << endl << "_DATA SEGMENT" << endl;
+        code << "\n\n.data\n";
         map<string, IdValue *>::iterator iter;
         for(iter = (*idMap).begin(); iter != (*idMap).end(); iter++)
         {
@@ -33,103 +51,93 @@ class CodeGenerate
             switch(keyMap[iter->second->type])
             {
                 // int
-                case 5: type = "DD"; break;
-                // char
                 case 6: type = "DD"; break;
+                // char
+                case 7: type = "DD"; break;
                 // double
-                case 7: type = "DQ"; break;
+                case 8: type = "DQ"; break;
             }
-            code << iter->first << "\t" << type << "\t0" << endl;
+            code << iter->first << "\t" << type << "\t0\n";
         }
-        code << "_DATA END" << endl;
     }
     void generateCode(List &parserList)
     {
-        code << endl << endl << "_TEXT SEGMENT" <<endl;
+        code << "\n\n" << ".code" <<"\n";
         ThreeAddress *p = parserList.head;
         while(p != 0)
         {
-            if(cmpMap.count(p->op))
-            {
-                p->op = "cmp";
-            }
             switch(keyMap[p->op])
             {
-                // =
-                case 11: 
-                {
-                    code << "mov eax, DWORD PTR " << p->arg1 << endl;
-                    code << "mov DWORD PTR " << p->result << ", eax" << endl;
-                    break;
-                }
                 // +
                 case 1: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << endl;
-                    code << "add eax, DWORD PTR " << p->arg2 << endl;
-                    code << "mov DWORD PTR " << p->result << ", eax" << endl;
+                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
+                    code << "add eax, DWORD PTR " << p->arg2 << "\n";
+                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
                     break;
                 }
                 // -
                 case 2: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << endl;
-                    code << "sub eax, DWORD PTR " << p->arg2 << endl;
-                    code << "mov DWORD PTR " << p->result << ", eax" << endl;
+                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
+                    code << "sub eax, DWORD PTR " << p->arg2 << "\n";
+                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
                     break;
                 }
                 // *
                 case 3: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << endl;
-                    code << "mul eax, DWORD PTR " << p->arg2 << endl;
-                    code << "mov DWORD PTR " << p->result << ", eax" << endl;
+                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
+                    code << "mul eax, DWORD PTR " << p->arg2 << "\n";
+                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
                     break;
                 }
                 // /
                 case 4: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << endl;
-                    code << "cdq" << p->arg1 << endl;
-                    code << "idiv DWORD PTR " << p->arg2 << endl;
-                    code << "mov DWORD PTR " << p->result << ", eax" << endl;
+                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
+                    code << "cdq" << p->arg1 << "\n";
+                    code << "idiv DWORD PTR " << p->arg2 << "\n";
+                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
+                    break;
+                }
+                // =
+                case 5: 
+                {
+                    code << "mov DWORD PTR " << p->result << ", DWORD PTR " << p->arg1 << "\n";
                     break;
                 }
                 // label
-                case 8: 
+                case 9: 
                 {
-                    code << "$" << p->result << endl;
+                    code << "$" << p->result << ":\n";
                     break;
                 }
                 // cmp
-                case 9: 
-                {
-                    code << "mov eax, DWORD PTR " << p->arg2 << endl;
-                    code << "cmp DWORD PTR " << p->arg1 << ", eax" << endl;
-                    break;
-                }
-                // jmp
                 case 10: 
                 {
-                    code << "jmp SHORT $" << p->result << endl;
+                    code << "cmp DWORD PTR " << p->result << ", DWORD PTR " << p->arg1 << "\n";
                     break;
                 }
-                // je
-                case 12: 
+                // j_type
+                case 11: 
                 {
-                    code << "je SHORT $" << p->result << endl;
+                    code << p->op << "short $" << p->result << "\n";
                     break;
                 }
             }
             p = p->next;
         }
-        code << "_TEXT END" <<endl;
+        code << "end main\n";
     }
     void generate(List &parserList)
     {
+        code.open(asm_path);
         map<string, IdValue *> *idMap = parserList.id_map_stack->top();
+        code << commonHeader;
         generateData(idMap);
         generateCode(parserList);
+        code.close();
     }
 };
 
