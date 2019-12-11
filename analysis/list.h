@@ -382,7 +382,7 @@ class List
                 arg1 = segment_block->get_true_id(nowNode->cNode[1]->value);
             }
             string result = segment_block->get_true_id(nowNode->cNode[0]->value);
-            push(new ThreeAddress("=", nowNode->cNode[1]->value, "", nowNode->cNode[0]->value));
+            push(new ThreeAddress("=", arg1, "", result));
         }
     }
     void install_id(node *nowNode)
@@ -405,6 +405,7 @@ class List
 
     void generate_while(node *nowNode)
     {
+        segment_block->add_depth();
         string label = getLabel();
         push(new ThreeAddress("label", "", "", label));
         ThreeAddress *j = new ThreeAddress("jmp", "", "", "");
@@ -428,6 +429,7 @@ class List
                 push(new ThreeAddress("label", "", "", label));
                 control_jump->jump_false(label);
             }
+        segment_block->remove_depth();
     }
     void generate_for(node *nowNode)
     {
@@ -477,6 +479,7 @@ class List
     }
     void generate_if(node *nowNode, node *elseNode = 0)
     {
+        segment_block->add_depth();
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
             {
@@ -517,6 +520,7 @@ class List
             push(tmp);
             j->result = label;
         }
+        segment_block->remove_depth();
     }
     ControlJump *generate_bool_expression(node *nowNode, string end)
     {
