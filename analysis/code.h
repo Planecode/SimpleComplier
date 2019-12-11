@@ -110,7 +110,7 @@ class CodeGenerate
                 // label
                 case 9: 
                 {
-                    code << "$" << p->result << "\n";
+                    code << "$" << p->result << ":\n";
                     break;
                 }
                 // cmp
@@ -128,6 +128,7 @@ class CodeGenerate
             }
             p = p->next;
         }
+        code << "end main\n";
     }
     void generate(List &parserList)
     {

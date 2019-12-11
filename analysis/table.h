@@ -8,6 +8,6 @@
 
 class IdTable
 {
-    
+
 };
 #endif // TABLE_H_INCLUDED
