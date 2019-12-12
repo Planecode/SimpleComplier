@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <stack>
+#include <cstdlib>
 #include "check.h"
 #include "table.h"
 
@@ -77,10 +78,8 @@ class List
     SegmentBlock *segment_block;
     ThreeAddress *head;
     ThreeAddress *tail;
-    TypeCheck *check;
     int tmp_seq;
     int label_seq;
-    bool error = 0;
     List(): head(0), tail(0), tmp_seq(0), label_seq(0), segment_block(0)
     {
 
@@ -176,8 +175,6 @@ class List
             {
                 generate_main(cNode);
             }
-            if (error)
-                return;
         }
     }
     void generate_main(node *nowNode)
@@ -194,8 +191,6 @@ class List
                 continue;
             if(cNode->description == "statement")
                 generate_statement(cNode);
-            if (error)
-                return;
         }
     }
     void generate_statement(node *nowNode, ControlJump *control_jump=0)
@@ -221,11 +216,8 @@ class List
                 }
             else
             {
-                check = new TypeCheck(segment_block);
                 generate_calc(cNode);
             }
-            if (error)
-                return;
         }
     }
 
@@ -273,20 +265,18 @@ class List
                 continue;
             }
             generate_calc(cNode);
-            if (error)
-                return;
         }
         if(avoidSet.count(nowNode->description))
             return;
         
         if(nowNode->description == "=")
         {
-            string msg = check->check_operator(nowNode);
-            if (msg != "")
+            TypeCheck type_check(segment_block);
+            string msg = type_check.check_operator(nowNode);
+            if(msg != "")
             {
-                error = 1;
-                push(new ThreeAddress(msg, "", "", ""));
-                return;
+                cout << msg << endl;
+                exit(-1);
             }
             if(nowNode->cNode[0]->description == "array_id")
             {
@@ -307,12 +297,12 @@ class List
         }
         else
         {
-            string msg = check->check_operator(nowNode);
-            if (msg != "")
+            TypeCheck type_check(segment_block);
+            string msg = type_check.check_operator(nowNode);
+            if(msg != "")
             {
-                error = 1;
-                push(new ThreeAddress(msg, "", "", ""));
-                return;
+                cout << msg << endl;
+                exit(-1);
             }
             if (nowNode->value == "")
             {
