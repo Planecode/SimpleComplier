@@ -27,7 +27,7 @@ List parserList;
 %token COMMA POINT COLON
 %token NUMBER ERROR ID STR
 %token VOID IF ELSE FOR SWITCH MAIN CONTINUE BREAK CASE DEFAULT WHILE DO NEW RETURN
-%token INT DOUBLE FLOAT STRING LONG SHORT BYTE STRUCT
+%token INT DOUBLE FLOAT CHAR STRING LONG SHORT BYTE STRUCT
 
 /////////////////////////////////////////////////////////////////////////////
 // declarations section
@@ -211,6 +211,7 @@ List parserList;
     var_type: INT {$$ = new node("int", 0, 0);}
     | DOUBLE {$$ = new node("double", 0, 0);}
     | FLOAT {$$ = new node("float", 0, 0);}
+    | CHAR {$$ = new node("char", 0, 0);}
     | STRING {$$ = new node("string", 0, 0);}
     | LONG {$$ = new node("long", 0, 0);}
     | SHORT {$$ = new node("short", 0, 0);}

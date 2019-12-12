@@ -77,8 +77,10 @@ class List
     SegmentBlock *segment_block;
     ThreeAddress *head;
     ThreeAddress *tail;
+    TypeCheck *check;
     int tmp_seq;
     int label_seq;
+    bool error = 0;
     List(): head(0), tail(0), tmp_seq(0), label_seq(0), segment_block(0)
     {
 
@@ -174,6 +176,8 @@ class List
             {
                 generate_main(cNode);
             }
+            if (error)
+                return;
         }
     }
     void generate_main(node *nowNode)
@@ -190,6 +194,8 @@ class List
                 continue;
             if(cNode->description == "statement")
                 generate_statement(cNode);
+            if (error)
+                return;
         }
     }
     void generate_statement(node *nowNode, ControlJump *control_jump=0)
@@ -214,7 +220,12 @@ class List
                     control_jump->j_true->push(j_end);
                 }
             else
+            {
+                check = new TypeCheck(segment_block);
                 generate_calc(cNode);
+            }
+            if (error)
+                return;
         }
     }
 
@@ -262,11 +273,21 @@ class List
                 continue;
             }
             generate_calc(cNode);
+            if (error)
+                return;
         }
         if(avoidSet.count(nowNode->description))
             return;
+        
         if(nowNode->description == "=")
         {
+            string msg = check->check_operator(nowNode);
+            if (msg != "")
+            {
+                error = 1;
+                push(new ThreeAddress(msg, "", "", ""));
+                return;
+            }
             if(nowNode->cNode[0]->description == "array_id")
             {
                 int index = get_index(nowNode->cNode[0]);
@@ -282,9 +303,17 @@ class List
             {
                 safe_push("=", nowNode->cNode[1], 0, nowNode->cNode[0]);
             }
+            
         }
         else
         {
+            string msg = check->check_operator(nowNode);
+            if (msg != "")
+            {
+                error = 1;
+                push(new ThreeAddress(msg, "", "", ""));
+                return;
+            }
             if (nowNode->value == "")
             {
                 nowNode->value = getTmp();
@@ -297,6 +326,7 @@ class List
             {
                 safe_push(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode);
             }
+            
         }
     }
 

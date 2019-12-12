@@ -31,7 +31,7 @@ class IdValue
             width = 4;
             return;
         }
-        else if(type_name == "int")
+        else if(type_name == "int" || type_name == "float")
         {
             width = 4;
         }
