@@ -149,6 +149,7 @@ List parserList;
     | expression SEMICOLON {$$ = $1;}
     | function_expression SEMICOLON {$$ = $1;}
     | declaration_struct SEMICOLON {$$ = $1;}
+    | SEMICOLON {$$ = new node("NULL", 0, 0);}
     ;
 
     function_expression: CONTINUE {$$ = new node("CONTINUE", 0, 0);}
