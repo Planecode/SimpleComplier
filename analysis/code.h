@@ -9,7 +9,7 @@
 #include <set>
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
-{"j", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}};
+{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}};
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -17,7 +17,7 @@ string commonHeader = ".386\n"
 "include \\masm32\\include\\windows.inc\n"
 "include \\masm32\\include\\user32.inc\n"
 "include \\masm32\\include\\kernel32.inc\n"
-"includelib \\masm32\\lib\user32.lib\n"
+"includelib \\masm32\\lib\\user32.lib\n"
 "includelib \\masm32\\lib\\kernel32.lib\n";
 
 class CodeGenerate
@@ -58,84 +58,133 @@ class CodeGenerate
                 // double
                 case 8: type = "DQ"; break;
             }
-            code << iter->first << "\t" << type << "\t0\n";
+            code << iter->first << "    " << type << "    0\n";
         }
     }
-    void generateCode(List &parserList)
+
+    void generate_local_var(map<string, IdValue *> *id_map)
     {
-        code << "\n\n" << ".code" <<"\n";
-        ThreeAddress *p = parserList.head;
-        while(p != 0)
+        if(!id_map->empty())
+        {
+            bool first = 1;
+            code << "    LOCAL";
+            map<string, IdValue *>::iterator iter;
+            for(iter = id_map->begin(); iter != id_map->end(); iter++) 
+            {
+                if(first)
+                {
+                    first = 0;
+                    code << " ";
+                }
+                else
+                {
+                    code << ",\n          ";
+                }
+                code << iter->first << ": DWORD";
+            }
+            code << "\n\n";
+        }
+    }
+    void generate_func(string name, SegmentBlock *segment_block)
+    {
+        ThreeAddress *p = segment_block->begin_address;
+        code << p->result << ":\n";
+        code << "$" << name << " PROC\n";
+        generate_local_var(segment_block->id_map);
+        
+        while(p != segment_block->end_address->next)
         {
             switch(keyMap[p->op])
             {
                 // +
                 case 1: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
-                    code << "add eax, DWORD PTR " << p->arg2 << "\n";
-                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    add eax, " << p->arg2 << "\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // -
                 case 2: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
-                    code << "sub eax, DWORD PTR " << p->arg2 << "\n";
-                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    sub eax, " << p->arg2 << "\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // *
                 case 3: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
-                    code << "mul eax, DWORD PTR " << p->arg2 << "\n";
-                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    imul eax, " << p->arg2 << "\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // /
                 case 4: 
                 {
-                    code << "mov eax, DWORD PTR " << p->arg1 << "\n";
-                    code << "cdq" << p->arg1 << "\n";
-                    code << "idiv DWORD PTR " << p->arg2 << "\n";
-                    code << "mov DWORD PTR " << p->result << ", eax" << "\n";
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    idiv " << p->arg2 << "\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // =
                 case 5: 
                 {
-                    code << "mov DWORD PTR " << p->result << ", DWORD PTR " << p->arg1 << "\n";
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // label
                 case 9: 
                 {
-                    code << "$" << p->result << ":\n";
+                    code << p->result << ":\n";
                     break;
                 }
                 // cmp
                 case 10: 
                 {
-                    code << "cmp DWORD PTR " << p->result << ", DWORD PTR " << p->arg1 << "\n";
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    cmp " << "eax, " << p->arg2 << "\n";
                     break;
                 }
                 // j_type
                 case 11: 
                 {
-                    code << p->op << "short $" << p->result << "\n";
+                    code << "    " << p->op << " " << p->result << "\n";
+                    break;
+                }
+                // inc
+                case 12: 
+                {
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    inc eax\n";
+                    code << "    mov " << p->arg1 << ", eax" << "\n";
                     break;
                 }
             }
             p = p->next;
         }
-        code << "end main\n";
+        code << name << "_end:\n";
+        code << "    ret\n";
+        code << "$" << name << " ENDP\n";
     }
     void generate(List &parserList)
     {
         code.open(asm_path);
         code << commonHeader;
-        generateCode(parserList);
+        code << "\n\n" << ".code" <<"\n";
+        map<string, SegmentBlock *>::iterator iter;
+        for(iter = IdTable.begin(); iter !=IdTable.end(); iter++) 
+        {
+            SegmentBlock *segment_block = iter->second;
+            ThreeAddress *p = segment_block->begin_address;
+            if(p->op == "entry")
+            {
+                generate_func(iter->first, segment_block);
+            }
+        }
+        code << "END $main\n";
         code.close();
     }
 };
