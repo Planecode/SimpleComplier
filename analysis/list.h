@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <stack>
+#include <cstdlib>
 #include "check.h"
 #include "table.h"
 
@@ -214,7 +215,9 @@ class List
                     control_jump->j_true->push(j_end);
                 }
             else
+            {
                 generate_calc(cNode);
+            }
         }
     }
 
@@ -265,8 +268,16 @@ class List
         }
         if(avoidSet.count(nowNode->description))
             return;
+        
         if(nowNode->description == "=")
         {
+            TypeCheck type_check(segment_block);
+            string msg = type_check.check_operator(nowNode);
+            if(msg != "")
+            {
+                cout << msg << endl;
+                exit(-1);
+            }
             if(nowNode->cNode[0]->description == "array_id")
             {
                 int index = get_index(nowNode->cNode[0]);
@@ -282,9 +293,17 @@ class List
             {
                 safe_push("=", nowNode->cNode[1], 0, nowNode->cNode[0]);
             }
+            
         }
         else
         {
+            TypeCheck type_check(segment_block);
+            string msg = type_check.check_operator(nowNode);
+            if(msg != "")
+            {
+                cout << msg << endl;
+                exit(-1);
+            }
             if (nowNode->value == "")
             {
                 nowNode->value = getTmp();
@@ -297,6 +316,7 @@ class List
             {
                 safe_push(nowNode->description, nowNode->cNode[0], nowNode->cNode[1], nowNode);
             }
+            
         }
     }
 
