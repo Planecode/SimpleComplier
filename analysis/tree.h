@@ -53,6 +53,20 @@ class IdValue
     }
 };
 
+class StructValue
+{
+    public:
+    map<string, IdValue *> *id_type;
+    StructValue()
+    {
+        id_type = new map<string, IdValue *>();
+    }
+    ~StructValue()
+    {
+
+    }
+};
+
 class node
 {
     public:
