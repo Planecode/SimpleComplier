@@ -78,6 +78,7 @@ class List
     SegmentBlock *segment_block;
     ThreeAddress *head;
     ThreeAddress *tail;
+    TypeCheck *check;
     int tmp_seq;
     int label_seq;
     List(): head(0), tail(0), tmp_seq(0), label_seq(0), segment_block(0)
@@ -279,6 +280,7 @@ class List
             }
         else
         {
+            check = new TypeCheck(segment_block);
             generate_calc(nowNode);
         }
     }
@@ -360,6 +362,19 @@ class List
         else if(nowNode->description == "r_++")
         {
             safe_push("inc", nowNode->cNode[0], 0, 0);
+        }
+        else if (nowNode->description == "=&")
+        {
+            if (nowNode->value == "")
+            {
+                nowNode->value = getTmp();
+            }
+            IdValue *result_value = segment_block->get_id_value(nowNode->value);
+            IdValue *id_value = segment_block->get_id_value(nowNode->cNode[0]->value);
+            result_value->allocate(id_value->type);
+            result_value->is_pointer = 1;
+            result_value->dimension = 1;
+            safe_push(nowNode->description, nowNode->cNode[0], 0, nowNode);
         }
         else if(cmpSet.count(nowNode->description))
         {
@@ -447,6 +462,7 @@ class List
         }
         else if (nowNode->cNode[0]->description == "pointer")
         {
+            generate_calc(nowNode->cNode[1]);
             string arg1 = nowNode->cNode[1]->value;
             if(nowNode->cNode[1]->description != "number")
             {
