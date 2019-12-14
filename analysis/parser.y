@@ -323,7 +323,7 @@ List parserList;
     ;
     
     cast_expression: unary_expression {$$ = $1;}
-    | BITWISEADD cast_expression{$$ = new node("=&", new(node*[1]){$2},1);}
+    | BITWISEADD ID {$$ = new node("=&", new(node*[1]){$2}, 1);}
     | var_type LP cast_expression RP {$$ = new node("(type)", new(node*[2]){$1, $3}, 2);}
     ;
     
