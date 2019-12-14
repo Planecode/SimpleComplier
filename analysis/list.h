@@ -78,7 +78,6 @@ class List
     SegmentBlock *segment_block;
     ThreeAddress *head;
     ThreeAddress *tail;
-    TypeCheck *check;
     int tmp_seq;
     int label_seq;
     List(): head(0), tail(0), tmp_seq(0), label_seq(0), segment_block(0)
@@ -280,7 +279,6 @@ class List
             }
         else
         {
-            check = new TypeCheck(segment_block);
             generate_calc(nowNode);
         }
     }
