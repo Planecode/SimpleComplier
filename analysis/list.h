@@ -183,6 +183,140 @@ class List
             {
                 generate_func(cNode);
             }
+            else if(cNode->description == "init_var")
+            {
+                generate_global_var(cNode);
+            }
+            else if(cNode->description == "declaration_struct")
+            {
+                generate_struct(cNode);
+            }
+        }
+    }
+
+    void generate_global_var(node *nowNode)
+    {
+        string type = nowNode->cNode[0]->description;
+        for(int i = 1; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            if(cNode->description == "=")
+            {
+                generate_global_assign(cNode, type);
+            }
+            else
+            {
+                global_allocate(cNode, type);
+            }
+        }
+    }
+
+    void global_allocate(node *nowNode, string type)
+    {
+        if(nowNode->description == "id")
+        {
+            if(global_id_map.count(nowNode->value) == 0)
+            {
+                global_id_map[nowNode->value] = new IdValue();
+            }
+            global_id_map[nowNode->value]->allocate(type);
+        }
+        else if(nowNode->description == "array_id")
+        {
+            if(global_id_map.count(nowNode->value) == 0)
+            {
+                global_id_map[nowNode->value] = new IdValue();
+            }
+            IdValue *id_value = global_id_map[nowNode->value];
+            id_value->is_array = 1;
+            id_value->dimension = nowNode->cNode[1]->cNodeLength;
+            id_value->array_width = new int(nowNode->cNode[1]->cNodeLength);
+            for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
+            {
+                id_value->array_width[i] = stoi(nowNode->cNode[1]->cNode[i]->value);
+            }
+            id_value->allocate(type);
+        }
+        else if(nowNode->description == "pointer")
+        {
+            int dimension = 1;
+            node *cNode = nowNode->cNode[0];
+            while(cNode->description != "id")
+            {
+                cNode = cNode->cNode[0];
+                dimension++;
+            }
+            if(global_id_map.count(nowNode->value) == 0)
+            {
+                global_id_map[nowNode->value] = new IdValue();
+            }
+            IdValue *id_value = global_id_map[nowNode->value];
+            id_value->is_pointer = 1;
+            id_value->dimension = dimension;
+            id_value->allocate(type);
+        }
+    }
+    void generate_global_assign(node *nowNode, string type)
+    {
+        
+    }
+
+    void generate_struct(node *nowNode)
+    {
+        for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[1]->cNode[i];
+            struct_allocate(cNode->cNode[0], cNode->cNode[0]->description, nowNode->cNode[0]->value);
+        }
+    }
+    void struct_allocate(node *nowNode, string type, string struct_id)
+    {
+        if(struct_id_map.count(struct_id) == 0)
+        {
+            struct_id_map[struct_id] = new StructValue();
+        }
+        map<string, IdValue *> *id_type = struct_id_map[struct_id]->id_type;
+        if(nowNode->description == "id")
+        {
+            if((*id_type).count(nowNode->value) == 0)
+            {
+                (*id_type)[nowNode->value] = new IdValue();
+            }
+            (*id_type)[nowNode->value]->allocate(type);
+        }
+        else if(nowNode->description == "array_id")
+        {
+            if((*id_type).count(nowNode->value) == 0)
+            {
+                (*id_type)[nowNode->value] = new IdValue();
+            }
+            IdValue *id_value = (*id_type)[nowNode->value];
+            id_value->is_array = 1;
+            id_value->dimension = nowNode->cNode[1]->cNodeLength;
+            id_value->array_width = new int(nowNode->cNode[1]->cNodeLength);
+            for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
+            {
+                id_value->array_width[i] = stoi(nowNode->cNode[1]->cNode[i]->value);
+            }
+            id_value->allocate(type);
+        }
+        else if(nowNode->description == "pointer")
+        {
+            int dimension = 1;
+            node *cNode = nowNode->cNode[0];
+            while(cNode->description != "id")
+            {
+                cNode = cNode->cNode[0];
+                dimension++;
+            }
+            if((*id_type).count(nowNode->value) == 0)
+            {
+                (*id_type)[nowNode->value] = new IdValue();
+            }
+            IdValue *id_value = (*id_type)[nowNode->value];
+            id_value->is_pointer = 1;
+            id_value->dimension = dimension;
+            id_value->allocate(type);
         }
     }
 

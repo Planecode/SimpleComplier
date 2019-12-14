@@ -8,7 +8,8 @@
 #include <set>
 #include "tree.h"
 
-map<string, IdValue *> *global_id_map;
+map<string, IdValue *> global_id_map;
+map<string, StructValue *> struct_id_map;
 class ThreeAddress
 {
     public:
@@ -101,9 +102,9 @@ class SegmentBlock
         {
             return (*para_map)[id];
         }
-        if(global_id_map->count(id) != 0)
+        if(global_id_map.count(id) != 0)
         {
-            return (*global_id_map)[id];
+            return global_id_map[id];
         }
         return 0;
     }
