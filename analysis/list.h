@@ -361,6 +361,19 @@ class List
         {
             safe_push("inc", nowNode->cNode[0], 0, 0);
         }
+        else if (nowNode->description == "=&")
+        {
+            if (nowNode->value == "")
+            {
+                nowNode->value = getTmp();
+            }
+            IdValue *result_value = segment_block->get_id_value(nowNode->value);
+            IdValue *id_value = segment_block->get_id_value(nowNode->cNode[0]->value);
+            result_value->allocate(id_value->type);
+            result_value->is_pointer = 1;
+            result_value->dimension = 1;
+            safe_push(nowNode->description, nowNode->cNode[0], 0, nowNode);
+        }
         else if(cmpSet.count(nowNode->description))
         {
             safe_push("cmp", nowNode->cNode[0], nowNode->cNode[1], 0);
@@ -447,6 +460,7 @@ class List
         }
         else if (nowNode->cNode[0]->description == "pointer")
         {
+            generate_calc(nowNode->cNode[1]);
             string arg1 = nowNode->cNode[1]->value;
             if(nowNode->cNode[1]->description != "number")
             {

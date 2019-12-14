@@ -91,6 +91,11 @@ public:
                 if (judge != "")
                     return judge;
             }
+            if (nowNode->cNode[1]->description == "=&")
+            {
+                judge = check_id(nowNode, 1);
+                return judge;
+            }
         }
         return judge;
     }
