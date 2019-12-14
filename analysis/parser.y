@@ -229,7 +229,7 @@ List parserList;
     | assignment_expression COMMA expression {$$ = new node(",", new(node*[2]){$1, $3}, 2);}
     ;
 
-    function_call_expression: ID LP argv_body RP {$$ = new node("function_call_expression", new(node*[2]){$1, $3}, 2);}
+    function_call_expression: ID LP argv_body RP {$$ = new node("call", new(node*[2]){$1, $3}, 2);}
     ;
 
     array_expression: LBRACE argv_body RBRACE {$$ = $2;}

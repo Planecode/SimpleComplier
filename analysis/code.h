@@ -9,7 +9,7 @@
 #include <set>
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
-{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}};
+{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}};
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -89,8 +89,21 @@ class CodeGenerate
     {
         ThreeAddress *p = segment_block->begin_address;
         code << p->result << ":\n";
-        code << "$" << name << " PROC\n";
+        code << "$" << name << " PROC";
+        if(!segment_block->para_map->empty())
+        {
+            bool first = 1;
+            code << ",\n";
+            map<string, IdValue *>::iterator iter;
+            for(iter = segment_block->para_map->begin(); iter != segment_block->para_map->end(); iter++) 
+            {
+                code << "    " << iter->first << ": DWORD\n";
+            }
+        }
+        code << "\n";
         generate_local_var(segment_block->id_map);
+
+        list<string> para_list;
         
         while(p != segment_block->end_address->next)
         {
@@ -162,6 +175,24 @@ class CodeGenerate
                     code << "    mov " << p->arg1 << ", eax" << "\n";
                     break;
                 }
+                // para
+                case 13: 
+                {
+                    para_list.push_back(p->result);
+                    break;
+                }
+                // INVOKE
+                case 14: 
+                {
+                    code << "    INVOKE $" << p->result;
+                    while(!para_list.empty()) 
+                    {
+                        code << ", " << para_list.front();
+                        para_list.pop_front();
+                    }
+                    code << "\n";
+                    break;
+                }
             }
             p = p->next;
         }
@@ -174,14 +205,14 @@ class CodeGenerate
         code.open(asm_path);
         code << commonHeader;
         code << "\n\n" << ".code" <<"\n";
-        map<string, SegmentBlock *>::iterator iter;
-        for(iter = IdTable.begin(); iter !=IdTable.end(); iter++) 
+        list<string>::iterator iter;
+        for(iter = IdList.begin(); iter !=IdList.end(); iter++) 
         {
-            SegmentBlock *segment_block = iter->second;
+            SegmentBlock *segment_block = IdTable[*iter];
             ThreeAddress *p = segment_block->begin_address;
             if(p->op == "entry")
             {
-                generate_func(iter->first, segment_block);
+                generate_func(*iter, segment_block);
             }
         }
         code << "END $main\n";

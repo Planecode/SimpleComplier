@@ -179,7 +179,38 @@ class List
             {
                 generate_main(cNode);
             }
+            else if(cNode->description == "declaration_function")
+            {
+                generate_func(cNode);
+            }
         }
+    }
+
+    void generate_func(node *nowNode)
+    {
+        string label = getLabel();
+        push(new ThreeAddress("entry", "", "", label));
+        if(IdTable.count(nowNode->cNode[1]->value) == 0)
+        {
+            segment_block = new SegmentBlock(tail);
+            IdTable[nowNode->cNode[1]->value] = segment_block;
+            IdList.push_back(nowNode->cNode[1]->value);
+        }
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            if(cNode == 0)
+                continue;
+            if(cNode->description == "statement")
+            {
+                generate_statement(cNode);
+            }
+            else if(cNode->description == "paramester_list")
+            {
+                generate_paramester(cNode);
+            }
+        }
+        segment_block->end_address = tail;
     }
     void generate_main(node *nowNode)
     {
@@ -189,6 +220,7 @@ class List
         {
             segment_block = new SegmentBlock(tail);
             IdTable["main"] = segment_block;
+            IdList.push_back("main");
         }
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
@@ -199,6 +231,16 @@ class List
                 generate_statement(cNode);
         }
         segment_block->end_address = tail;
+    }
+    void generate_paramester(node *nowNode)
+    {
+        for(int i = 0; i < nowNode->cNodeLength; i++)
+        {
+            node *cNode = nowNode->cNode[i];
+            string type = cNode->cNode[0]->description;
+            IdValue *id_value = segment_block->install_para_id(cNode->cNode[1]->value);
+            id_value->allocate(type);
+        }
     }
     void generate_statement(node *nowNode, ControlJump *control_jump=0)
     {
@@ -220,6 +262,15 @@ class List
             generate_do_while(nowNode);
         else if(nowNode->description == "init_var")
             install_id(nowNode);
+        else if(nowNode->description == "call")
+            {
+                for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
+                {
+                    string result = segment_block->get_true_id(nowNode->cNode[1]->cNode[i]->value);
+                    push(new ThreeAddress("para", "", "", result));
+                }
+                push(new ThreeAddress("INVOKE", "", "", nowNode->cNode[0]->value));
+            }
         else if(nowNode->description  == "BREAK")
             {
                 ThreeAddress *j_end = new ThreeAddress("J", "", "", "");

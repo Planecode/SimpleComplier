@@ -3,11 +3,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <stack>
+#include <list>
 #include <map>
 #include <set>
 #include "tree.h"
 
+map<string, IdValue *> *global_id_map;
 class ThreeAddress
 {
     public:
@@ -51,6 +52,7 @@ class SegmentBlock
     LocalSet *local_head;
     LocalSet *local_tail;
     map<string, IdValue *> *id_map;
+    map<string, IdValue *> *para_map;
     ThreeAddress *begin_address;
     ThreeAddress *end_address;
     SegmentBlock(ThreeAddress *begin_address): stack_seq(0), begin_address(begin_address), end_address(0)
@@ -58,6 +60,7 @@ class SegmentBlock
         local_head = new LocalSet(0, 0);
         local_tail = local_head;
         id_map = new map<string, IdValue *>();
+        para_map = new map<string, IdValue *>();
     }
     ~SegmentBlock()
     {
@@ -73,24 +76,41 @@ class SegmentBlock
         }
         return 0;
     }
+    IdValue *install_para_id(string id_name)
+    {
+        if(para_map->count(id_name) == 0)
+        {
+            (*para_map)[id_name] = new IdValue();
+            return (*para_map)[id_name];
+        }
+        return 0;
+    }
     IdValue *get_id_value(string id)
     {
         LocalSet *p = local_tail;
-        while(p->front != 0)
+        while(p != 0)
         {
-            string install_name = id + "_" +to_string(p->seq);
+            string install_name = id + "_" + to_string(p->seq);
             if(id_map->count(install_name) != 0)
             {
                 return (*id_map)[install_name];
             }
             p = p->front;
         }
-        return (*id_map)[id + "_" +to_string(p->seq)];
+        if(para_map->count(id) != 0)
+        {
+            return (*para_map)[id];
+        }
+        if(global_id_map->count(id) != 0)
+        {
+            return (*global_id_map)[id];
+        }
+        return 0;
     }
     string get_true_id(string id)
     {
         LocalSet *p = local_tail;
-        while(p->front != 0)
+        while(p != 0)
         {
             string install_name = id + "_" + to_string(p->seq);
             if(id_map->count(install_name) != 0)
@@ -99,7 +119,7 @@ class SegmentBlock
             }
             p = p->front;
         }
-        return id + "_" + to_string(p->seq);
+        return id;
     }
     void add_depth()
     {
@@ -116,4 +136,6 @@ class SegmentBlock
 };
 
 map<string, SegmentBlock *> IdTable;
+list<string> IdList;
+
 #endif // TABLE_H_INCLUDED
