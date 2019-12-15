@@ -1,6 +1,7 @@
 #ifndef CODE_H_INCLUDED
 #define CODE_H_INCLUDED
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <string>
 #include "list.h"
@@ -9,7 +10,8 @@
 #include <set>
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
-{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}};
+{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14},{"[]=", 15},
+{"p=", 16}, {"=&", 17}, {"index", 18} };
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -58,7 +60,15 @@ class CodeGenerate
                 // double
                 case 8: type = "DQ"; break;
             }
-            code << iter->first << "    " << type << "    0\n";
+            if (iter->second->is_array)
+            {
+                cout << iter->first << "    " << type << "    " << iter->second->width << "    " << "DUP  (?)\n";
+            }
+            else
+            {
+                code << iter->first << "    " << type << "    0\n";
+            }
+            
         }
     }
 
@@ -112,40 +122,40 @@ class CodeGenerate
                 // +
                 case 1: 
                 {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    add eax, " << p->arg2 << "\n";
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    add eax, " << get_instruction(p->arg2, segment_block, segment_block->id_map) << "\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // -
                 case 2: 
                 {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    sub eax, " << p->arg2 << "\n";
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    sub eax, " << get_instruction(p->arg2, segment_block, segment_block->id_map) << "\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // *
                 case 3: 
                 {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    imul eax, " << p->arg2 << "\n";
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    imul eax, " << get_instruction(p->arg2, segment_block, segment_block->id_map) << "\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // /
                 case 4: 
                 {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    idiv " << p->arg2 << "\n";
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    idiv " << get_instruction(p->arg2, segment_block, segment_block->id_map) << "\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
                 // =
                 case 5: 
                 {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    mov " << p->result << ", eax" << "\n";
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    mov " << get_instruction(p->result, segment_block, segment_block->id_map) << ", eax" << "\n";
                     break;
                 }
                 // label
@@ -157,14 +167,14 @@ class CodeGenerate
                 // cmp
                 case 10: 
                 {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    cmp " << "eax, " << p->arg2 << "\n";
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    cmp " << "eax, " << get_instruction(p->arg2, segment_block, segment_block->id_map) << "\n";
                     break;
                 }
                 // j_type
                 case 11: 
                 {
-                    code << "    " << p->op << " " << p->result << "\n";
+                    code << "    " << p->op << " " << get_instruction(p->result, segment_block, segment_block->id_map) << "\n";
                     break;
                 }
                 // inc
@@ -193,12 +203,60 @@ class CodeGenerate
                     code << "\n";
                     break;
                 }
+                // []=
+                case 15:
+                {
+                    code << "    mov eax, " << get_instruction(p->arg1, segment_block, segment_block->id_map) << "\n";
+                    code << "    mov esi, " <<  get_instruction(p->arg2, segment_block, segment_block->id_map) << "\n";
+                    code << "    mov " << p->result << "[esi], eax\n";
+                    break;
+                }
+                // p=
+                case 16:
+                {
+                    code << "    mov esi, "<< p->arg1 << "\n";
+                    code << "    mov "<< p->result << ", esi"<< "\n";
+                    break;
+
+                }
+                // =&
+                case 17:
+                {
+                    code << "    lea esi, " << "[" << p->arg1 << "]\n";
+                    code << "    mov " << p->result << ", esi\n";
+                    break;
+                }
+                // index
+                case 18:
+                {
+                    code << "    mov eax, " << p->arg1 << "[" << p->arg2 << "]\n";
+                    code << "    mov "<< p->result << ", eax\n";
+                }
             }
             p = p->next;
         }
         code << name << "_end:\n";
         code << "    ret\n";
         code << "$" << name << " ENDP\n";
+    }
+    string get_instruction (string true_id, SegmentBlock *segment_block, map<string, IdValue *> *idMap)
+    {
+        if (is_num(true_id))
+        {
+            return true_id;
+        }
+        if ((*idMap)[true_id]->is_pointer)
+            return "["+ true_id +"]";
+        return true_id;
+    }
+    bool is_num (string id)
+    {
+        double a;
+        stringstream in(id);
+        if (in >> a)
+            return true;
+        else
+            return false;
     }
     void generate(List &parserList)
     {
