@@ -444,7 +444,6 @@ class List
     }
     void generate_calc(node *nowNode)
     {
-        cout << nowNode->description<< " " << nowNode->value << endl;
         for(int i = 0; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
