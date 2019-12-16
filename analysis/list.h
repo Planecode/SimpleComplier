@@ -150,7 +150,14 @@ class List
         string result = "";
         if(node_3 != 0)
         {
-            result = segment_block->get_true_id(node_3->value);   
+            if(node_3->description != "number")
+            {
+                result = segment_block->get_true_id(node_3->value); 
+            }
+            else
+            {
+                result = node_3->value;
+            }  
         }
         push(new ThreeAddress(op, arg1, arg2, result));
     }
@@ -403,11 +410,11 @@ class List
         else if(nowNode->description == "init_var")
             install_id(nowNode);
         else if(nowNode->description  == "BREAK")
-            {
-                ThreeAddress *j_end = new ThreeAddress("J", "", "", "");
-                push(j_end);
-                control_jump->j_true->push(j_end);
-            }
+        {
+            ThreeAddress *j_end = new ThreeAddress("J", "", "", "");
+            push(j_end);
+            control_jump->j_true->push(j_end);
+        }
         else
         {
             generate_calc(nowNode);
@@ -464,13 +471,13 @@ class List
         
         if(nowNode->description == "=")
         {
-            TypeCheck type_check(segment_block);
-            string msg = type_check.check_operator(nowNode);
-            if(msg != "")
-            {
-                cout << msg << endl;
-                exit(-1);
-            }
+            // TypeCheck type_check(segment_block);
+            // string msg = type_check.check_operator(nowNode);
+            // if(msg != "")
+            // {
+            //     cout << msg << endl;
+            //     exit(-1);
+            // }
             if(nowNode->cNode[0]->description == "array_id")
             {
                 int index = get_index(nowNode->cNode[0]);
@@ -493,6 +500,11 @@ class List
                 safe_push("=", nowNode->cNode[1], 0, nowNode->cNode[0]);
             }
             
+        }
+        else if (nowNode->description == "struct_var")
+        {
+            nowNode->description = "number";
+            nowNode->value = segment_block->get_true_id(nowNode->cNode[0]->value) + "." + nowNode->cNode[1]->value;
         }
         else if(nowNode->description == "call")
         {
@@ -535,13 +547,13 @@ class List
         }
         else
         {
-            TypeCheck type_check(segment_block);
-            string msg = type_check.check_operator(nowNode);
-            if(msg != "")
-            {
-                cout << msg << endl;
-                exit(-1);
-            }
+            // TypeCheck type_check(segment_block);
+            // string msg = type_check.check_operator(nowNode);
+            // if(msg != "")
+            // {
+            //     cout << msg << endl;
+            //     exit(-1);
+            // }
             if (nowNode->value == "")
             {
                 nowNode->value = getTmp();
