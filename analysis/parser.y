@@ -379,6 +379,7 @@ parser parser;
 void parser::yyerror(const char YYFAR* text)
 {
     cout<< "Line " << lexer.yylineno << ": syntax error near " << lexer.yytext << endl;
+    exit(-1);
 }
 
 int main(void)

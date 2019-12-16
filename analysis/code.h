@@ -10,7 +10,7 @@
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
 {"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}, {"return", 15}, 
-{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}};
+{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}, {"struct", 20}};
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -66,23 +66,58 @@ class CodeGenerate
     {
 
     }
-    void generateData(map<string, IdValue *> *idMap)
+    void generateData()
     {
+        if(global_id_map.empty())
+        {
+            return;
+        }
         code << "\n\n.data\n";
         map<string, IdValue *>::iterator iter;
-        for(iter = (*idMap).begin(); iter != (*idMap).end(); iter++)
+        for(iter = global_id_map.begin(); iter != global_id_map.end(); iter++)
         {
-            string type = "DD";
+            string type = "";
             switch(keyMap[iter->second->type])
             {
                 // int
-                case 6: type = "DD"; break;
+                case 6: type = "DWORD"; break;
                 // char
-                case 7: type = "DD"; break;
+                case 7: type = "DWORD"; break;
                 // double
-                case 8: type = "DQ"; break;
+                case 8: type = "QWORD"; break;
             }
-            code << iter->first << "    " << type << "    0\n";
+            code << iter->first << " " << type << " ?\n";
+        }
+    }
+
+    void generateStruct()
+    {
+        if(struct_id_map.empty())
+        {
+            return;
+        }
+        code << "\n\n.data\n";
+        map<string, StructValue *>::iterator iter;
+        for(iter = struct_id_map.begin(); iter != struct_id_map.end(); iter++)
+        {
+            code << iter->first << " STRUCT\n";
+            map<string, IdValue *> *id_type = iter->second->id_type;
+            map<string, IdValue *>::iterator iter_t;
+            for(iter_t = id_type->begin(); iter_t != id_type->end(); iter_t++)
+            {
+                string type = "";
+                switch(keyMap[iter_t->second->type])
+                {
+                    // int
+                    case 6: type = "DWORD"; break;
+                    // char
+                    case 7: type = "DWORD"; break;
+                    // double
+                    case 8: type = "QWORD"; break;
+                }
+                code << iter_t->first << " " << type << " ?\n";
+            }
+            code << iter->first << " ENDS\n";
         }
     }
 
@@ -113,7 +148,7 @@ class CodeGenerate
                     // char
                     case 7: type = "DWORD"; break;
                     // double
-                    case 8: type = "SDWORD"; break;
+                    case 8: type = "QWORD"; break;
                 }
                 if(id_value->is_array)
                 {
@@ -122,6 +157,10 @@ class CodeGenerate
                 else if(id_value->is_pointer)
                 {
                     code << iter->first << ": DWORD";
+                }
+                else if(id_value->type == "struct")
+                {
+                    code << iter->first << ": " + id_value->struct_name;
                 }
                 else
                 {
@@ -282,6 +321,8 @@ class CodeGenerate
     {
         code.open(asm_path);
         code << commonHeader;
+        generateData();
+        generateStruct();
         code << "\n\n" << ".code" <<"\n";
         list<string>::iterator iter;
         for(iter = IdList.begin(); iter !=IdList.end(); iter++) 
