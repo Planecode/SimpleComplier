@@ -81,9 +81,28 @@ public:
             }
             else if (nowNode->cNode[i]->description == "pointer")
             {
-                judge = check_pointer_type(nowNode->cNode[i]);
-                if (judge != "")
-                    return judge;
+                if (nowNode->cNode[i]->cNode[0]->description == "pointer")
+                {
+                    node *cNode = nowNode->cNode[i]->cNode[0];
+                    while (1)
+                    {
+                        if (cNode->cNode[0]->description == "id")
+                        {
+                            break;
+                        }
+                        cNode = cNode->cNode[0];
+                    }
+                    judge = check_pointer_type(cNode);
+                    if (judge != "")
+                        return judge;
+                }
+                else if (nowNode->cNode[i]->cNode[0]->description == "id")
+                {
+                    judge = check_pointer_type(nowNode->cNode[i]);
+                    if (judge != "")
+                        return judge;
+                }
+                
             }
             else if (nowNode->cNode[i]->description == "array_id")
             {

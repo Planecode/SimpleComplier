@@ -437,9 +437,16 @@ class List
     }
     void generate_pointer_expression(node *nowNode)
     {
+        if (nowNode->value == "")
+            nowNode->value = getTmp();
         if(nowNode->cNode[0]->description == "id")
         {
-            nowNode->value = nowNode->cNode[0]->value;
+            safe_push("value", nowNode->cNode[0], 0, nowNode);
+        }
+        else if (nowNode->cNode[0]->description == "pointer")
+        {
+            generate_pointer_expression(nowNode->cNode[0]);
+            safe_push("value", nowNode->cNode[0], 0, nowNode);
         }
     }
     void generate_array_expression(node *nowNode)
