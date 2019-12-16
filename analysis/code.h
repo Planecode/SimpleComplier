@@ -279,7 +279,7 @@ class CodeGenerate
                 // return
                 case 15: 
                 {
-                    code << "    mov eax, " << p->result << "\n";
+                    code << "    mov ebx, " << p->result << "\n";
                     break;
                 }
                 // addr

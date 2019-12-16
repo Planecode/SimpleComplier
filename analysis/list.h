@@ -408,14 +408,6 @@ class List
                 push(j_end);
                 control_jump->j_true->push(j_end);
             }
-        else if(nowNode->description  == "RETURN")
-            {
-                if(nowNode->cNodeLength != 0)
-                {
-                    generate_statement(nowNode->cNode[0]);
-                    push(new ThreeAddress("return", "", "", segment_block->get_true_id(nowNode->cNode[0]->value)));
-                }
-            }
         else
         {
             generate_calc(nowNode);
@@ -511,7 +503,14 @@ class List
             }
             push(new ThreeAddress("INVOKE", "", "", nowNode->cNode[0]->value));
             nowNode->description = "number";
-            nowNode->value = "eax";          
+            nowNode->value = "ebx";     
+        }
+        else if(nowNode->description  == "RETURN")
+        {
+            if(nowNode->cNodeLength != 0)
+            {
+                push(new ThreeAddress("return", "", "", segment_block->get_true_id(nowNode->cNode[0]->value)));
+            }
         }
         else if(nowNode->description == "r_++")
         {
@@ -803,7 +802,7 @@ class List
                 {
                     push(j);
                 }
-            generate_statement(elseNode);
+            generate_statement(elseNode->cNode[0]);
             string label = getLabel();
             ThreeAddress *tmp = new ThreeAddress("label", "", "", label);
             push(tmp);
