@@ -448,6 +448,13 @@ class List
             generate_pointer_expression(nowNode->cNode[0]);
             safe_push("value", nowNode->cNode[0], 0, nowNode);
         }
+        else
+        {
+            generate_calc(nowNode->cNode[0]->cNode[1]);
+            string arg1 = segment_block->get_true_id(nowNode->cNode[0]->cNode[0]->value);
+            string result = segment_block->get_true_id(nowNode->value);
+            push(new ThreeAddress("value", arg1, nowNode->cNode[0]->cNode[1]->value, result));
+        }
     }
     void generate_array_expression(node *nowNode)
     {
@@ -505,7 +512,13 @@ class List
             }
             else
             {
-                safe_push("=", nowNode->cNode[1], 0, nowNode->cNode[0]);
+                string op = "=";
+                IdValue *id_value = segment_block->get_id_value(nowNode->cNode[0]->value);
+                if (id_value->is_pointer)
+                {
+                    op = "=[]";
+                }
+                safe_push(op, nowNode->cNode[1], 0, nowNode->cNode[0]);
             }
             
         }
@@ -604,7 +617,7 @@ class List
         if(nowNode->cNode[0]->description == "array_id")
         {
             int index = get_index(nowNode->cNode[0]);
-            node *argv_list = nowNode->cNode[1];
+            node *argv_list = nowNode->cNode[1]->cNode[0];
             for(int i = 0; i < index; i++)
             {
                 if(i < argv_list->cNodeLength)

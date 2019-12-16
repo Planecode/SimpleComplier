@@ -313,8 +313,17 @@ class CodeGenerate
                 // value
                 case 21:
                 {
-                    code << "    mov eax, [" << p->arg1 << "]\n";
-                    code << "    mov " << p->result << ", eax\n";
+                    
+                    if (p->arg2 != "")
+                    {
+                        code << "    mov eax, [" << p->arg1 << "+" <<p->arg2 << "]\n";
+                    }
+                    else
+                    {
+                        code << "    mov eax, " << p->arg1 << "\n";
+                    }
+                    code << "    mov ebx, DWORD ptr [eax]\n";
+                    code << "    mov " << p->result << ", ebx\n";
                 }
             }
             p = p->next;
