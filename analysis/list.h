@@ -396,20 +396,19 @@ class List
             generate_do_while(nowNode);
         else if(nowNode->description == "init_var")
             install_id(nowNode);
-        else if(nowNode->description == "call")
-            {
-                for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
-                {
-                    string result = segment_block->get_true_id(nowNode->cNode[1]->cNode[i]->value);
-                    push(new ThreeAddress("para", "", "", result));
-                }
-                push(new ThreeAddress("INVOKE", "", "", nowNode->cNode[0]->value));
-            }
         else if(nowNode->description  == "BREAK")
             {
                 ThreeAddress *j_end = new ThreeAddress("J", "", "", "");
                 push(j_end);
                 control_jump->j_true->push(j_end);
+            }
+        else if(nowNode->description  == "RETURN")
+            {
+                if(nowNode->cNodeLength != 0)
+                {
+                    generate_statement(nowNode->cNode[0]);
+                    push(new ThreeAddress("return", "", "", segment_block->get_true_id(nowNode->cNode[0]->value)));
+                }
             }
         else
         {
@@ -483,7 +482,13 @@ class List
             }
             else if (nowNode->cNode[0]->description == "pointer")
             {
-                safe_push("p=", nowNode->cNode[1], 0, nowNode->cNode[0]);
+                string op = "=";
+                IdValue *id_value = segment_block->get_id_value(nowNode->cNode[1]->value);
+                if(id_value->is_array)
+                {
+                    op = "=[]";
+                }
+                safe_push(op, nowNode->cNode[1], 0, nowNode->cNode[0]);
             }
             else
             {
@@ -491,11 +496,22 @@ class List
             }
             
         }
+        else if(nowNode->description == "call")
+        {
+            for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
+            {
+                string result = segment_block->get_true_id(nowNode->cNode[1]->cNode[i]->value);
+                push(new ThreeAddress("para", "", "", result));
+            }
+            push(new ThreeAddress("INVOKE", "", "", nowNode->cNode[0]->value));
+            nowNode->description = "number";
+            nowNode->value = "eax";          
+        }
         else if(nowNode->description == "r_++")
         {
             safe_push("inc", nowNode->cNode[0], 0, 0);
         }
-        else if (nowNode->description == "=&")
+        else if (nowNode->description == "addr")
         {
             if (nowNode->value == "")
             {
@@ -596,8 +612,14 @@ class List
         {
             generate_calc(nowNode->cNode[1]);
             string arg1 = nowNode->cNode[1]->value;
+            string op = "=";
             if(nowNode->cNode[1]->description != "number")
             {
+                IdValue *id_value = segment_block->get_id_value(nowNode->cNode[1]->value);
+                if(id_value->is_array)
+                {
+                    op = "=[]";
+                }
                 arg1 = segment_block->get_true_id(nowNode->cNode[1]->value);
             }
             node *cNode = nowNode->cNode[0]->cNode[0];
@@ -606,7 +628,7 @@ class List
                 cNode = cNode->cNode[0];
             }
             string result = segment_block->get_true_id(cNode->value);
-            push(new ThreeAddress("p=", arg1, "", result));
+            push(new ThreeAddress(op, arg1, "", result));
         }
         else
         {

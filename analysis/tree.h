@@ -45,6 +45,7 @@ class IdValue
         }
         if(is_array)
         {
+            width = 1;
             for(int i = 0; i < dimension; i++)
             {
                 width *= array_width[i];

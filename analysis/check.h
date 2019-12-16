@@ -91,9 +91,9 @@ public:
                 if (judge != "")
                     return judge;
             }
-            if (nowNode->cNode[1]->description == "=&")
+            if (nowNode->cNode[1]->description == "addr")
             {
-                judge = check_id(nowNode, 1);
+                judge = check_id(nowNode->cNode[1], 1);
                 return judge;
             }
         }
