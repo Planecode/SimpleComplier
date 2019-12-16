@@ -239,11 +239,11 @@ List parserList;
     | {$$ = new node("argv_list", 0, 0);}
     ;
 
-    argv_list: declaration_expression COMMA argv_list {
+    argv_list: expression COMMA argv_list {
         int cNodeLength = 0;
         if($3 != 0){cNodeLength = $3->cNodeLength;}
         $$ = new node("argv_list", parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | declaration_expression {$$ = new node("argv_list", new(node*[1]){$1}, 1);}
+    | expression {$$ = new node("argv_list", new(node*[1]){$1}, 1);}
     ;
 
     assignment_expression: var ASSIGN expression {
@@ -323,7 +323,7 @@ List parserList;
     ;
     
     cast_expression: unary_expression {$$ = $1;}
-    | BITWISEADD ID {$$ = new node("=&", new(node*[1]){$2}, 1);}
+    | BITWISEADD ID {$$ = new node("addr", new(node*[1]){$2}, 1);}
     | var_type LP cast_expression RP {$$ = new node("(type)", new(node*[2]){$1, $3}, 2);}
     ;
     

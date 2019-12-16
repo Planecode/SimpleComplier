@@ -9,7 +9,8 @@
 #include <set>
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
-{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}};
+{"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}, {"return", 15}, 
+{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}};
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -17,8 +18,31 @@ string commonHeader = ".386\n"
 "include \\masm32\\include\\windows.inc\n"
 "include \\masm32\\include\\user32.inc\n"
 "include \\masm32\\include\\kernel32.inc\n"
+"include \\masm32\\include\\masm32.inc\n"
+"include \\masm32\\include\\msvcrt.inc\n"
 "includelib \\masm32\\lib\\user32.lib\n"
-"includelib \\masm32\\lib\\kernel32.lib\n";
+"includelib \\masm32\\lib\\kernel32.lib\n"
+"includelib \\masm32\\lib\\masm32.lib\n"
+"includelib \\masm32\\lib\\msvcrt.lib\n"
+".const\n"
+"$output_format_int byte \"%d\", 0DH, 0AH, 0\n"
+"$input_format_int byte \"%d\", 0\n"
+".code\n"
+"$print PROC,\n"
+"    val: dword\n"
+"    invoke crt_printf, addr $output_format_int, val\n"
+"    ret\n"
+"$print ENDP\n"
+"$input PROC,\n"
+"    val: ptr dword\n"
+"    invoke crt_scanf, addr $input_format_int,  val\n"
+"    ret\n"
+"$input ENDP\n"
+"$point PROC,\n"
+"    val: ptr dword\n"
+"    mov eax, val\n"
+"    ret\n"
+"$point ENDP\n";
 
 class CodeGenerate
 {
@@ -80,7 +104,29 @@ class CodeGenerate
                 {
                     code << ",\n          ";
                 }
-                code << iter->first << ": DWORD";
+                IdValue *id_value  = iter->second;
+                string type = "";
+                switch(keyMap[id_value->type])
+                {
+                    // int
+                    case 6: type = "DWORD"; break;
+                    // char
+                    case 7: type = "DWORD"; break;
+                    // double
+                    case 8: type = "SDWORD"; break;
+                }
+                if(id_value->is_array)
+                {
+                    code << iter->first << "[" << id_value->width << "]: " << type;
+                }
+                else if(id_value->is_pointer)
+                {
+                    code << iter->first << ": DWORD";
+                }
+                else
+                {
+                    code << iter->first << ": " << type;
+                }
             }
             code << "\n\n";
         }
@@ -92,12 +138,10 @@ class CodeGenerate
         code << "$" << name << " PROC";
         if(!segment_block->para_map->empty())
         {
-            bool first = 1;
-            code << ",\n";
             map<string, IdValue *>::iterator iter;
             for(iter = segment_block->para_map->begin(); iter != segment_block->para_map->end(); iter++) 
             {
-                code << "    " << iter->first << ": DWORD\n";
+                code << ",\n    " << iter->first << ": DWORD";
             }
         }
         code << "\n";
@@ -191,6 +235,40 @@ class CodeGenerate
                         para_list.pop_front();
                     }
                     code << "\n";
+                    break;
+                }
+                // return
+                case 15: 
+                {
+                    code << "    mov eax, " << p->result << "\n";
+                    break;
+                }
+                // addr
+                case 16: 
+                {
+                    code << "    INVOKE $point, addr " << p->arg1 << "\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
+                    break;
+                }
+                // []=
+                case 17: 
+                {
+                    code << "    mov eax, " << p->arg1 << "\n";
+                    code << "    mov " << p->result << "[" + p->arg2 + "], eax" << "\n";
+                    break;
+                }
+                // index
+                case 18: 
+                {
+                    code << "    mov eax, " << p->arg1 << "[" + p->arg2 + "]\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
+                    break;
+                }
+                // =[]
+                case 19: 
+                {
+                    code << "    INVOKE $point, addr " << p->arg1 << "[0]\n";
+                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
             }
