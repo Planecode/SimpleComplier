@@ -266,7 +266,7 @@ class List
         for(int i = 0; i < nowNode->cNode[1]->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[1]->cNode[i];
-            struct_allocate(cNode->cNode[0], cNode->cNode[0]->description, nowNode->cNode[0]->value);
+            struct_allocate(cNode->cNode[1], cNode->cNode[0]->description, nowNode->cNode[0]->value);
         }
     }
     void struct_allocate(node *nowNode, string type, string struct_id)
@@ -362,7 +362,13 @@ class List
             if(cNode == 0)
                 continue;
             if(cNode->description == "statement")
+            {
                 generate_statement(cNode);
+            }
+            else if(cNode->description == "paramester_list")
+            {
+                generate_paramester(cNode);
+            }
         }
         segment_block->end_address = tail;
     }
@@ -547,12 +553,16 @@ class List
 
 
 
-    void local_allocate(node *nowNode, string type)
+    void local_allocate(node *nowNode, string type, string struct_name)
     {
         if(nowNode->description == "id")
         {
             IdValue *id_value = segment_block->install_id(nowNode->value);
             id_value->allocate(type);
+            if(type == "struct")
+            {
+                id_value->struct_name = struct_name;
+            }
         }
         else if(nowNode->description == "array_id")
         {
@@ -583,7 +593,7 @@ class List
     }
     void generate_init_assign(node *nowNode, string type)
     {
-        local_allocate(nowNode->cNode[0], type);
+        local_allocate(nowNode->cNode[0], type, "");
         if(nowNode->cNode[0]->description == "array_id")
         {
             int index = get_index(nowNode->cNode[0]);
@@ -645,6 +655,11 @@ class List
     void install_id(node *nowNode)
     {
         string type = nowNode->cNode[0]->description;
+        string struct_name = "";
+        if(type == "struct")
+        {
+            struct_name = nowNode->cNode[0]->cNode[0]->value;
+        }
         for(int i = 1; i < nowNode->cNodeLength; i++)
         {
             node *cNode = nowNode->cNode[i];
@@ -654,7 +669,7 @@ class List
             }
             else
             {
-                local_allocate(cNode, type);
+                local_allocate(cNode, type, struct_name);
             }
         }
     }

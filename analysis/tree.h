@@ -10,12 +10,13 @@ class IdValue
 {
     public:
     string type;
+    string struct_name;
     bool is_pointer;
     bool is_array;
     int width;
     int *array_width;
     int dimension;
-    IdValue(): type("None"), width(0), array_width(0), is_array(0), is_pointer(0)
+    IdValue(): type("None"), struct_name("None"), width(0), array_width(0), is_array(0), is_pointer(0)
     {
 
     }
