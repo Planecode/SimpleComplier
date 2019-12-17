@@ -14,6 +14,7 @@ class IdValue
     bool is_pointer;
     bool is_array;
     int width;
+    int size;
     int *array_width;
     int dimension;
     IdValue(): type("None"), struct_name("None"), width(0), array_width(0), is_array(0), is_pointer(0)
@@ -46,10 +47,10 @@ class IdValue
         }
         if(is_array)
         {
-            width = 1;
+            size = 1;
             for(int i = 0; i < dimension; i++)
             {
-                width *= array_width[i];
+                size *= array_width[i];
             }
         }
     }

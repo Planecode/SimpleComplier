@@ -10,7 +10,7 @@
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
 {"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}, {"return", 15}, 
-{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}, {"struct", 20}, {"struct", 20}};
+{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}, {"struct", 20}, {"struct", 20}, {"value", 21}};
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -40,7 +40,7 @@ string commonHeader = ".386\n"
 "$input ENDP\n"
 "$point PROC,\n"
 "    val: ptr dword\n"
-"    mov eax, val\n"
+"    mov ebx, val\n"
 "    ret\n"
 "$point ENDP\n";
 
@@ -152,7 +152,7 @@ class CodeGenerate
                 }
                 if(id_value->is_array)
                 {
-                    code << iter->first << "[" << id_value->width << "]: " << type;
+                    code << iter->first << "[" << id_value->size * id_value->width << "]: " << type;
                 }
                 else if(id_value->is_pointer)
                 {
@@ -286,7 +286,7 @@ class CodeGenerate
                 case 16: 
                 {
                     code << "    INVOKE $point, addr " << p->arg1 << "\n";
-                    code << "    mov " << p->result << ", eax" << "\n";
+                    code << "    mov " << p->result << ", ebx" << "\n";
                     break;
                 }
                 // []=
@@ -307,6 +307,13 @@ class CodeGenerate
                 case 19: 
                 {
                     code << "    INVOKE $point, addr " << p->arg1 << "[0]\n";
+                    code << "    mov " << p->result << ", ebx" << "\n";
+                    break;
+                }
+                // value
+                case 21: 
+                {
+                    code << "    mov eax, DWORD ptr [" << p->arg1 << "+" <<p->arg2 << "]\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
