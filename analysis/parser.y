@@ -224,8 +224,6 @@ List parserList;
     expression: assignment_expression {$$ = $1;}
     | logical_or_expression {$$ = $1;}
     | array_expression {$$ = $1;}
-    | logical_or_expression COMMA expression {$$ = new node(",", new(node*[2]){$1, $3}, 2);}
-    | assignment_expression COMMA expression {$$ = new node(",", new(node*[2]){$1, $3}, 2);}
     ;
 
     function_call_expression: ID LP argv_body RP {$$ = new node("call", new(node*[2]){$1, $3}, 2);}
