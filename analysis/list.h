@@ -535,6 +535,32 @@ class List
         {
             safe_push("dec", nowNode->cNode[0], 0, 0);
         }
+        else if(nowNode->description == "^")
+        {
+            if (nowNode->value == "")
+            {
+                nowNode->value = getTmp();
+            }
+            safe_push("=", nowNode->cNode[0], 0, nowNode);
+            string tmp = getTmp();
+            string arg1 = nowNode->cNode[1]->value;
+            if(nowNode->cNode[1]->description != "number")
+            {
+                arg1 = segment_block->get_true_id(nowNode->cNode[1]->value);
+            }
+            string result = segment_block->get_true_id(tmp);
+            push(new ThreeAddress("=", arg1, "", result));
+            string label1 = getLabel();
+            push(new ThreeAddress("label", "", "", label1));
+            push(new ThreeAddress("cmp", result, "1", ""));
+            string label2 = getLabel();
+            push(new ThreeAddress("jle", "", "", label2));
+            safe_push("*", nowNode->cNode[0], nowNode, nowNode);
+            push(new ThreeAddress("dec", result, "", ""));
+            push(new ThreeAddress("jmp", "", "", label1));
+            push(new ThreeAddress("label", "", "", label2));
+
+        }
         else if (nowNode->description == "addr")
         {
             if (nowNode->value == "")

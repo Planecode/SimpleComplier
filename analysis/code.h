@@ -10,7 +10,7 @@
 
 map<string, int> keyMap{{"+", 1}, {"-", 2}, {"*", 3}, {"/", 4}, {"=", 5}, {"int", 6}, {"char", 7}, {"double", 8}, {"label", 9}, {"cmp", 10}, 
 {"jmp", 11}, {"je", 11}, {"jne", 11}, {"jl", 11}, {"jle", 11}, {"jg", 11}, {"jge", 11}, {"inc", 12}, {"para", 13}, {"INVOKE", 14}, {"return", 15}, 
-{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}, {"struct", 20}, {"struct", 20}, {"value", 21}, {"dec", 22}, {"^", 23}};
+{"addr", 16}, {"[]=", 17}, {"index", 18}, {"=[]", 19}, {"struct", 20}, {"struct", 20}, {"value", 21}, {"dec", 22}};
 
 string commonHeader = ".386\n"
 ".model flat, stdcall\n"
@@ -323,19 +323,6 @@ class CodeGenerate
                     code << "    mov eax, " << p->arg1 << "\n";
                     code << "    dec eax\n";
                     code << "    mov " << p->arg1 << ", eax" << "\n";
-                    break;
-                }
-                // ^
-                case 23: 
-                {
-                    code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    mov ebx, " << p->arg2 << "\n";
-                    code << "    dec ebx\n";
-                    code << "    mov ecx, ebx\n";
-                    code << " L1:\n";
-                    code << "    imul eax, "<< p->arg1 << "\n";
-                    code << "    loop L1\n";
-                    code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
             }
