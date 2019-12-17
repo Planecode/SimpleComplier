@@ -8,3 +8,7 @@
 /analysis/*.v
 /analysis/*.pgp
 /analysis/*.pgw
+/test/*.obj
+/test/*.asm
+/test/*.exe
+/test/*.db
