@@ -531,6 +531,10 @@ class List
         {
             safe_push("inc", nowNode->cNode[0], 0, 0);
         }
+        else if(nowNode->description == "r_--")
+        {
+            safe_push("dec", nowNode->cNode[0], 0, 0);
+        }
         else if (nowNode->description == "addr")
         {
             if (nowNode->value == "")
