@@ -234,11 +234,11 @@ class List
         }
         else if(nowNode->description == "array_id")
         {
-            if(global_id_map.count(nowNode->value) == 0)
+            if(global_id_map.count(nowNode->cNode[0]->value) == 0)
             {
-                global_id_map[nowNode->value] = new IdValue();
+                global_id_map[nowNode->cNode[0]->value] = new IdValue();
             }
-            IdValue *id_value = global_id_map[nowNode->value];
+            IdValue *id_value = global_id_map[nowNode->cNode[0]->value];
             id_value->is_array = 1;
             id_value->dimension = nowNode->cNode[1]->cNodeLength;
             id_value->array_width = new int(nowNode->cNode[1]->cNodeLength);
@@ -257,11 +257,11 @@ class List
                 cNode = cNode->cNode[0];
                 dimension++;
             }
-            if(global_id_map.count(nowNode->value) == 0)
+            if(global_id_map.count(nowNode->cNode[0]->value) == 0)
             {
-                global_id_map[nowNode->value] = new IdValue();
+                global_id_map[nowNode->cNode[0]->value] = new IdValue();
             }
-            IdValue *id_value = global_id_map[nowNode->value];
+            IdValue *id_value = global_id_map[nowNode->cNode[0]->value];
             id_value->is_pointer = 1;
             id_value->dimension = dimension;
             id_value->allocate(type);
@@ -297,11 +297,11 @@ class List
         }
         else if(nowNode->description == "array_id")
         {
-            if((*id_type).count(nowNode->value) == 0)
+            if((*id_type).count(nowNode->cNode[0]->value) == 0)
             {
-                (*id_type)[nowNode->value] = new IdValue();
+                (*id_type)[nowNode->cNode[0]->value] = new IdValue();
             }
-            IdValue *id_value = (*id_type)[nowNode->value];
+            IdValue *id_value = (*id_type)[nowNode->cNode[0]->value];
             id_value->is_array = 1;
             id_value->dimension = nowNode->cNode[1]->cNodeLength;
             id_value->array_width = new int(nowNode->cNode[1]->cNodeLength);
@@ -320,11 +320,11 @@ class List
                 cNode = cNode->cNode[0];
                 dimension++;
             }
-            if((*id_type).count(nowNode->value) == 0)
+            if((*id_type).count(nowNode->cNode[0]->value) == 0)
             {
-                (*id_type)[nowNode->value] = new IdValue();
+                (*id_type)[nowNode->cNode[0]->value] = new IdValue();
             }
-            IdValue *id_value = (*id_type)[nowNode->value];
+            IdValue *id_value = (*id_type)[nowNode->cNode[0]->value];
             id_value->is_pointer = 1;
             id_value->dimension = dimension;
             id_value->allocate(type);
