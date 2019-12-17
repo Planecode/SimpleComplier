@@ -329,10 +329,12 @@ class CodeGenerate
                 case 23: 
                 {
                     code << "    mov eax, " << p->arg1 << "\n";
-                    for(int i = 1; i < stoi(p->arg2); i++)
-                    {
-                        code << "    imul eax, " << p->arg1 << "\n";
-                    }
+                    code << "    mov ebx, " << p->arg2 << "\n";
+                    code << "    dec ebx\n";
+                    code << "    mov ecx, ebx\n";
+                    code << " L1:\n";
+                    code << "    imul eax, "<< p->arg1 << "\n";
+                    code << "    loop L1\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }
