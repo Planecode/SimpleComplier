@@ -7,7 +7,7 @@ int main(){
     int a[3] ;
     a[1] = 2;
     int b[3][4];
-     b[1][1]=54;
+    b[1][1]=54;
    struct student stu1;
    print(a[1]);
    print(b[1][1]);

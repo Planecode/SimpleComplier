@@ -23,8 +23,10 @@ string commonHeader = ".386\n"
 "includelib \\masm32\\lib\\user32.lib\n"
 "includelib \\masm32\\lib\\kernel32.lib\n"
 "includelib \\masm32\\lib\\masm32.lib\n"
-"includelib \\masm32\\lib\\msvcrt.lib\n"
-".const\n"
+"includelib \\masm32\\lib\\msvcrt.lib\n";
+
+
+string pre_define = ".const\n"
 "$output_format_int byte \"%d\", 0DH, 0AH, 0\n"
 "$input_format_int byte \"%d\", 0\n"
 ".code\n"
@@ -170,6 +172,21 @@ class CodeGenerate
             code << "\n\n";
         }
     }
+
+    void generate_func_name(string name, SegmentBlock *segment_block)
+    {
+        code << "$" << name << " proto";
+        if(!segment_block->para_map->empty())
+        {
+            map<string, IdValue *>::iterator iter;
+            for(iter = segment_block->para_map->begin(); iter != segment_block->para_map->end(); iter++) 
+            {
+                code << ",\n    " << iter->first << ": DWORD";
+            }
+        }
+        code << "\n";
+    }
+
     void generate_func(string name, SegmentBlock *segment_block)
     {
         ThreeAddress *p = segment_block->begin_address;
@@ -348,10 +365,20 @@ class CodeGenerate
     {
         code.open(asm_path);
         code << commonHeader;
+        list<string>::iterator iter;
+        for(iter = IdList.begin(); iter !=IdList.end(); iter++) 
+        {
+            SegmentBlock *segment_block = IdTable[*iter];
+            ThreeAddress *p = segment_block->begin_address;
+            if(p->op == "entry")
+            {
+                generate_func_name(*iter, segment_block);
+            }
+        }
+        code << pre_define;
         generateData();
         generateStruct();
         code << "\n\n" << ".code" <<"\n";
-        list<string>::iterator iter;
         for(iter = IdList.begin(); iter !=IdList.end(); iter++) 
         {
             SegmentBlock *segment_block = IdTable[*iter];

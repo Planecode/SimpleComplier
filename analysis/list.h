@@ -75,6 +75,7 @@ class ControlJump
 class List
 {
     public:
+    string func_name;
     SegmentBlock *segment_block;
     ThreeAddress *head;
     ThreeAddress *tail;
@@ -333,6 +334,7 @@ class List
         push(new ThreeAddress("entry", "", "", label));
         if(IdTable.count(nowNode->cNode[1]->value) == 0)
         {
+            func_name = nowNode->cNode[1]->value;
             segment_block = new SegmentBlock(tail);
             IdTable[nowNode->cNode[1]->value] = segment_block;
             IdList.push_back(nowNode->cNode[1]->value);
@@ -359,6 +361,7 @@ class List
         push(new ThreeAddress("entry", "", "", label));
         if(IdTable.count("main") == 0)
         {
+            func_name = "main";
             segment_block = new SegmentBlock(tail);
             IdTable["main"] = segment_block;
             IdList.push_back("main");
@@ -525,6 +528,7 @@ class List
             if(nowNode->cNodeLength != 0)
             {
                 push(new ThreeAddress("return", "", "", segment_block->get_true_id(nowNode->cNode[0]->value)));
+                push(new ThreeAddress("jmp", "", "", func_name + "_end"));
             }
         }
         else if(nowNode->description == "r_++")

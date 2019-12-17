@@ -224,7 +224,6 @@ List parserList;
     expression: assignment_expression {$$ = $1;}
     | logical_or_expression {$$ = $1;}
     | array_expression {$$ = $1;}
-    | function_call_expression {$$ = $1;}
     | logical_or_expression COMMA expression {$$ = new node(",", new(node*[2]){$1, $3}, 2);}
     | assignment_expression COMMA expression {$$ = new node(",", new(node*[2]){$1, $3}, 2);}
     ;
@@ -332,12 +331,14 @@ List parserList;
     ;
     
     unary_expression: declaration_expression {$$ = $1;}
+    | function_call_expression {$$ = $1;}
     | INC var {$$ = new node("l_++", new(node*[1]){$2}, 1);}
     | DEC var {$$ = new node("l_--", new(node*[1]){$2}, 1);}
     | var INC {$$ = new node("r_++", new(node*[1]){$1}, 1);}
     | var DEC {$$ = new node("r_--", new(node*[1]){$1}, 1);}
     | LNOT var {$$ = new node("!", new(node*[1]){$2}, 1);}
     | LNOT parenthesized_expression {$$ = new node("!", new(node*[1]){$2}, 1);}
+    | LNOT function_call_expression {$$ = new node("!", new(node*[1]){$2}, 1);}
     ;
 
     declaration_expression: parenthesized_expression {$$ = $1;}

@@ -1,14 +1,12 @@
-int wrongplus(int a, int b)
+int wrongplus(int a)
 {
-    a = a + 1;
-    b = b + 1;
-    return a + b;
+    if(a == 1)
+        return 1;
+    return wrongplus(a - 1) * a;
 }
 int main(){
-    int c =3;
-    int a = 4 ;
-    int s;
-    s = wrongplus(a,c);
-   print(s);
+    int a = 4;
+    input(&a);
+    print(wrongplus(a));
     return 0;
 }
