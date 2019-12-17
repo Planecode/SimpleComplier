@@ -239,13 +239,17 @@ List parserList;
     | {$$ = new node("argv_list", 0, 0);}
     ;
 
-    argv_list: expression COMMA argv_list {
+    argv_list: array_list_single COMMA argv_list {
         int cNodeLength = 0;
         if($3 != 0){cNodeLength = $3->cNodeLength;}
         $$ = new node("argv_list", parserTree.unit_node($1, $3), cNodeLength + 1);}
-    | expression {$$ = new node("argv_list", new(node*[1]){$1}, 1);}
+    | array_list_single {$$ = new node("argv_list", new(node*[1]){$1}, 1);}
     ;
 
+    array_list_single: logical_or_expression {$$ = $1;}
+    | array_expression {$$ = $1;}
+    | function_call_expression {$$ = $1;}
+    ;
     assignment_expression: var ASSIGN expression {
         $$ = new node("=", new(node*[2]){$1, $3}, 2);
         }
