@@ -386,10 +386,17 @@ void parser::yyerror(const char YYFAR* text)
     exit(-1);
 }
 
-int main(void)
+int main(int argc,char *argv[])
 {
-    string sFile;
-    getline(cin, sFile);
+    string sFile = "";
+    if(argc < 2)
+    {
+        getline(cin, sFile);
+    }
+    else
+    {
+        sFile = argv[1];
+    }
     lexer.yyin = new std::ifstream(sFile);
     if(!(*lexer.yyin))
     {
