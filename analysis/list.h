@@ -25,10 +25,12 @@ class ControlJump
     public:
     stack<ThreeAddress *> *j_true;
     stack<ThreeAddress *> *j_false;
+    ThreeAddress *j_continue;
     ControlJump()
     {
         j_true = new stack<ThreeAddress *>();
         j_false = new stack<ThreeAddress *>();
+        j_continue = 0;
     }
     ~ControlJump()
     {
@@ -54,15 +56,16 @@ class ControlJump
     void unit_jump(ControlJump *tmp)
     {
         while(tmp->j_true->size() != 0)
-            {
-                this->j_true->push(tmp->j_true->top());
-                tmp->j_true->pop();
-            }
-            while(tmp->j_false->size() != 0)
-            {
-                this->j_false->push(tmp->j_false->top());
-                tmp->j_false->pop();
-            }
+        {
+            this->j_true->push(tmp->j_true->top());
+            tmp->j_true->pop();
+        }
+        while(tmp->j_false->size() != 0)
+        {
+            this->j_false->push(tmp->j_false->top());
+            tmp->j_false->pop();
+        }
+        this->j_continue = tmp->j_continue;
     }
     void switch_true_false()
     {
@@ -399,11 +402,11 @@ class List
             for(int i = 0; i < nowNode->cNodeLength; i++)
             {
                 node *cNode = nowNode->cNode[i];
-                generate_statement(cNode);
+                generate_statement(cNode, control_jump);
             }
         }
         else if(nowNode->description == "conditional_statement")
-            generate_conditional(nowNode);
+            generate_conditional(nowNode, control_jump);
         else if(nowNode->description == "while_statement")
             generate_while(nowNode);
         else if(nowNode->description == "for_statement")
@@ -414,9 +417,16 @@ class List
             install_id(nowNode);
         else if(nowNode->description  == "BREAK")
         {
-            ThreeAddress *j_end = new ThreeAddress("J", "", "", "");
+            ThreeAddress *j_end = new ThreeAddress("jmp", "", "", "");
             push(j_end);
-            control_jump->j_true->push(j_end);
+            cout << 1 <<endl;
+            control_jump->j_false->push(j_end);
+        }
+        else if(nowNode->description  == "CONTINUE")
+        {
+            ThreeAddress *j_continue = new ThreeAddress("jmp", "", "", "");
+            push(j_continue);
+            control_jump->j_continue = j_continue;
         }
         else
         {
@@ -734,15 +744,16 @@ class List
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
         {
-            string label = getLabel();
-            push(new ThreeAddress("label", "", "", label));
-            control_jump->jump_true(label);
+            string label1 = getLabel();
+            push(new ThreeAddress("label", "", "", label1));
+            control_jump->jump_true(label1);
         }
         
-        if(nowNode->cNode[1]->description == "statement")
-            generate_statement(nowNode->cNode[1]);
-        else
-            generate_calc(nowNode->cNode[1]);
+        generate_statement(nowNode->cNode[1], control_jump);
+        if(control_jump->j_continue != 0)
+        {
+            control_jump->j_continue->result = label;
+        }
         push(j);
         if(control_jump->j_false->size() != 0)
         {
@@ -767,7 +778,13 @@ class List
             push(new ThreeAddress("label", "", "", label));
             control_jump->jump_true(label);
         }
-        generate_statement(nowNode->cNode[3]);
+        generate_statement(nowNode->cNode[3], control_jump);
+        if(control_jump->j_continue != 0)
+        {
+            string label = getLabel();
+            push(new ThreeAddress("label", "", "", label));
+            control_jump->j_continue->result = label;
+        }
         generate_statement(nowNode->cNode[2]);
         push(j);
         if(control_jump->j_false->size() != 0)
@@ -784,8 +801,16 @@ class List
         segment_block->add_depth();
         string label = getLabel();
         push(new ThreeAddress("label", "", "", label));
-        generate_statement(nowNode->cNode[0]);
-        ControlJump *control_jump = generate_bool_expression(nowNode->cNode[1], "JTrue");
+        ControlJump *control_jump = new ControlJump();
+        generate_statement(nowNode->cNode[0], control_jump);
+        delete control_jump;
+        if(control_jump->j_continue != 0)
+        {
+            string label = getLabel();
+            push(new ThreeAddress("label", "", "", label));
+            control_jump->j_continue->result = label;
+        }
+        control_jump->unit_jump(generate_bool_expression(nowNode->cNode[1], "JTrue"));
         if(control_jump->j_true->size() != 0)
         {
             control_jump->jump_true(label);
@@ -799,18 +824,18 @@ class List
         segment_block->remove_depth();
     }
 
-    void generate_conditional(node *nowNode)
+    void generate_conditional(node *nowNode, ControlJump *control_jump)
     {
         segment_block->add_depth();
         if(nowNode->cNode[0]->description == "if_statement")
         {
             if(nowNode->cNodeLength == 1)
             {
-                generate_if(nowNode->cNode[0]);
+                generate_if(nowNode->cNode[0], 0, control_jump);
             }
             else
             {
-                generate_if(nowNode->cNode[0], nowNode->cNode[1]);
+                generate_if(nowNode->cNode[0], nowNode->cNode[1], control_jump);
             }
         }
         else
@@ -819,7 +844,7 @@ class List
         }
         segment_block->remove_depth();
     }
-    void generate_if(node *nowNode, node *elseNode = 0)
+    void generate_if(node *nowNode, node *elseNode, ControlJump *up_control_jump)
     {
         ControlJump *control_jump = generate_bool_expression(nowNode->cNode[0], "JFalse");
         if(control_jump->j_true->size() != 0)
@@ -828,7 +853,7 @@ class List
                 push(new ThreeAddress("label", "", "", label));
                 control_jump->jump_true(label);
             }
-        generate_statement(nowNode->cNode[1]);
+        generate_statement(nowNode->cNode[1], up_control_jump);
         if(control_jump->j_false->size() != 0)
             {
                 string label = getLabel();
@@ -852,7 +877,7 @@ class List
                 {
                     push(j);
                 }
-            generate_statement(elseNode->cNode[0]);
+            generate_statement(elseNode->cNode[0], up_control_jump);
             string label = getLabel();
             ThreeAddress *tmp = new ThreeAddress("label", "", "", label);
             push(tmp);
