@@ -35,11 +35,11 @@ string pre_define = ".const\n"
 "    invoke crt_printf, addr $output_format_int, val\n"
 "    ret\n"
 "$print ENDP\n"
-"$input PROC,\n"
+"$scan PROC,\n"
 "    val: ptr dword\n"
 "    invoke crt_scanf, addr $input_format_int,  val\n"
 "    ret\n"
-"$input ENDP\n"
+"$scan ENDP\n"
 "$point PROC,\n"
 "    val: ptr dword\n"
 "    mov ebx, val\n"
@@ -159,20 +159,9 @@ class CodeGenerate
     {
         if(!id_map->empty())
         {
-            bool first = 1;
-            code << "    LOCAL";
             map<string, IdValue *>::iterator iter;
             for(iter = id_map->begin(); iter != id_map->end(); iter++) 
             {
-                if(first)
-                {
-                    first = 0;
-                    code << " ";
-                }
-                else
-                {
-                    code << ",\n          ";
-                }
                 IdValue *id_value  = iter->second;
                 string type = "";
                 switch(keyMap[id_value->type])
@@ -186,19 +175,19 @@ class CodeGenerate
                 }
                 if(id_value->is_array)
                 {
-                    code << iter->first << "[" << id_value->size * id_value->width << "]: " << type;
+                    code << "    LOCAL " << iter->first << "[" << id_value->size * id_value->width << "]: " << type << "\n";
                 }
                 else if(id_value->is_pointer)
                 {
-                    code << iter->first << ": DWORD";
+                    code << "    LOCAL " << iter->first << ": DWORD\n";
                 }
                 else if(id_value->type == "struct")
                 {
-                    code << iter->first << ": " + id_value->struct_name;
+                    code << "    LOCAL " << iter->first << ": " + id_value->struct_name << "\n";
                 }
                 else
                 {
-                    code << iter->first << ": " << type;
+                    code << "    LOCAL " << iter->first << ": " << type << "\n";
                 }
             }
             code << "\n\n";
@@ -344,13 +333,15 @@ class CodeGenerate
                 case 17: 
                 {
                     code << "    mov eax, " << p->arg1 << "\n";
-                    code << "    mov " << p->result << "[" + p->arg2 + "], eax" << "\n";
+                    code << "    mov ecx, " << p->arg2 << "\n";
+                    code << "    mov " << p->result << "[ecx], eax" << "\n";
                     break;
                 }
                 // index
                 case 18: 
                 {
-                    code << "    mov eax, " << p->arg1 << "[" + p->arg2 + "]\n";
+                    code << "    mov ecx, " << p->arg2 << "\n";
+                    code << "    mov eax, " << p->arg1 << "[ecx]\n";
                     code << "    mov " << p->result << ", eax" << "\n";
                     break;
                 }

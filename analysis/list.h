@@ -436,18 +436,27 @@ class List
         }
     }
 
-    int get_index(node *nowNode)
+    string get_index(node *nowNode)
     {
-        int index = 0;
+        string index = getTmp();
+        string result = segment_block->get_true_id(index);
+        push(new ThreeAddress("=", "0", "", result));
         int width = 1;
         IdValue *id_value = segment_block->get_id_value(nowNode->cNode[0]->value);
         for(int i = nowNode->cNode[1]->cNodeLength - 1; i >= 0; i--)
         {
             node *cNode = nowNode->cNode[1]->cNode[i];
-            index += stoi(cNode->value) * width;
+            string arg1 = cNode->value;
+            if(cNode->description != "number")
+            {
+                arg1 = segment_block->get_true_id(cNode->value);
+            }
+            push(new ThreeAddress("*", arg1, to_string(width), "eax"));
+            push(new ThreeAddress("+", "eax", result, result));
             width *= id_value->array_width[i];
         }
-        return index * id_value->width;
+        push(new ThreeAddress("*", result, "4", result));
+        return result;
     }
     void generate_pointer_expression(node *nowNode)
     {
@@ -468,11 +477,11 @@ class List
     }
     void generate_array_expression(node *nowNode)
     {
-        int index = get_index(nowNode);
+        string index = get_index(nowNode);
         nowNode->value = getTmp();
         string arg1 = segment_block->get_true_id(nowNode->cNode[0]->value);
         string result = segment_block->get_true_id(nowNode->value);
-        push(new ThreeAddress("index", arg1, to_string(index), result));
+        push(new ThreeAddress("index", arg1, index, result));
     }
     void generate_calc(node *nowNode)
     {
@@ -505,10 +514,10 @@ class List
             // }
             if(nowNode->cNode[0]->description == "array_id")
             {
-                int index = get_index(nowNode->cNode[0]);
+                string index = get_index(nowNode->cNode[0]);
                 string arg1 = segment_block->get_true_id(nowNode->cNode[1]->value);
                 string result = segment_block->get_true_id(nowNode->cNode[0]->cNode[0]->value);
-                push(new ThreeAddress("[]=", arg1, to_string(index), result));
+                push(new ThreeAddress("[]=", arg1, index, result));
             }
             else
             {
@@ -658,8 +667,17 @@ class List
         local_allocate(nowNode->cNode[0], type, "");
         if(nowNode->cNode[0]->description == "array_id")
         {
-            int index = get_index(nowNode->cNode[0]);
+            int index = 0;
+            int width = 1;
             IdValue *id_value = segment_block->get_id_value(nowNode->cNode[0]->cNode[0]->value);
+            for(int i = nowNode->cNode[0]->cNode[1]->cNodeLength - 1; i >= 0; i--)
+            {
+                node *cNode = nowNode->cNode[0]->cNode[1]->cNode[i];
+                index += stoi(cNode->value) * width;
+                width *= id_value->array_width[i];
+            }
+            index *= id_value->width;
+            id_value = segment_block->get_id_value(nowNode->cNode[0]->cNode[0]->value);
             node *argv_list = nowNode->cNode[1];
             for(int i = 0; i < index; i+= id_value->width)
             {
