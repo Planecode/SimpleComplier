@@ -1,12 +1,12 @@
-int wrongplus(int a)
+int factor(int a)
 {
     if(a == 1)
         return 1;
-    return wrongplus(a - 1) * a;
+    return factor(a - 1) * a;
 }
 int main(){
     int a = 4;
-    input(&a);
-    print(wrongplus(a));
+    scan(&a);
+    print(factor(a));
     return 0;
 }

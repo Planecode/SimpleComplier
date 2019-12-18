@@ -195,11 +195,11 @@ List parserList;
     default_case: DEFAULT COLON statement {$$ = new node("default_case", new(node*[1]){$3}, 1);}
     ;
 
-    loop_statement: for_statememt {$$ = $1;}
+    loop_statement: for_statement {$$ = $1;}
     | while_statement {$$ = $1;}
     | do_while_statement {$$ = $1;}
     ;
-    for_statememt: FOR LP single_statement logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
+    for_statement: FOR LP single_statement logical_or_expression SEMICOLON expression RP LBRACE statement RBRACE {
         $$ = new node("for_statement", new(node*[4]){$3, $4, $6, $9}, 4);}
     ;
     while_statement: WHILE LP logical_or_expression RP LBRACE statement RBRACE {

@@ -14,9 +14,9 @@ int main() {
         }
     }
     int c;
-    input(&c);
+    scan(&c);
     int d;
     d = a+c;
-    print(10/9);
+    print(d * 10/9);
     return 0;
 }
