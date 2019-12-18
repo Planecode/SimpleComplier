@@ -431,7 +431,7 @@ class List
         }
         else
         {
-            clear_stack();
+            TypeCheck::clear_stack();
             generate_calc(nowNode);
         }
     }
@@ -935,7 +935,7 @@ class List
             control_jump->switch_true_false();
             return control_jump;
         }
-        clear_stack();
+        TypeCheck::clear_stack();
         generate_calc(nowNode);
         ThreeAddress *j_end = new ThreeAddress(bool_jump[end + nowNode->description], "", "", "");
         push(j_end);
@@ -996,7 +996,7 @@ class List
     }
     void generate_switch(node *nowNode)
     {
-        clear_stack();
+        TypeCheck::clear_stack();
         generate_calc(nowNode->cNode[0]);
         generate_case(nowNode->cNode[1], nowNode->cNode[0]->value);
     }

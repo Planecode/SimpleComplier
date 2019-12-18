@@ -9,13 +9,7 @@
 
 
 stack<string> type_stack;
-void clear_stack()
-{
-    while (!type_stack.empty())
-    {
-        type_stack.pop();
-    }
-}
+
 class TypeCheck
 {
 public:
@@ -27,6 +21,13 @@ public:
     ~TypeCheck()
     {
 
+    }
+    static void clear_stack()
+    {
+        while (!type_stack.empty())
+        {
+            type_stack.pop();
+        }
     }
     string compare(string l_type, string r_type)
     {
