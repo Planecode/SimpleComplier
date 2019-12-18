@@ -1,6 +1,15 @@
+struct m{
+int a;
+int b;
+};
+
 int main(){
-int a[6] = {2, 3, 4, 5, 6, 7};
-int *c = a;
-*(c+2) = 10;
-print(a[2]);
+	struct m a;
+	a.a = 2;
+	a.b = 2;
+	struct m b;
+	b.a = a.a;
+	b.b = b.a * a.b;
+	print(a.b);
+	print(b.b);
 }
