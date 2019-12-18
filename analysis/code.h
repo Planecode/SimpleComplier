@@ -78,6 +78,7 @@ class CodeGenerate
         map<string, IdValue *>::iterator iter;
         for(iter = global_id_map.begin(); iter != global_id_map.end(); iter++)
         {
+            IdValue *id_value  = iter->second;
             string type = "";
             switch(keyMap[iter->second->type])
             {
@@ -88,7 +89,22 @@ class CodeGenerate
                 // double
                 case 8: type = "QWORD"; break;
             }
-            code << iter->first << " " << type << " ?\n";
+            if(id_value->is_array)
+            {
+                code << iter->first << " " << type << " " << id_value->size  << " dup(?)\n";
+            }
+            else if(id_value->is_pointer)
+            {
+                code << iter->first << " DWORD ?\n";
+            }
+            else if(id_value->type == "struct")
+            {
+                code << iter->first << " " + id_value->struct_name << " ?\n";
+            }
+            else
+            {
+                code << iter->first << " " << type << " " << id_value->init_value << "\n";
+            }
         }
     }
 
@@ -107,8 +123,9 @@ class CodeGenerate
             map<string, IdValue *>::iterator iter_t;
             for(iter_t = id_type->begin(); iter_t != id_type->end(); iter_t++)
             {
+                IdValue *id_value  = iter_t->second;
                 string type = "";
-                switch(keyMap[iter_t->second->type])
+                switch(keyMap[id_value->type])
                 {
                     // int
                     case 6: type = "DWORD"; break;
@@ -117,7 +134,22 @@ class CodeGenerate
                     // double
                     case 8: type = "QWORD"; break;
                 }
-                code << iter_t->first << " " << type << " ?\n";
+                if(id_value->is_array)
+                {
+                    code << iter_t->first << " " << type << " " << id_value->size  << " dup(?)\n";
+                }
+                else if(id_value->is_pointer)
+                {
+                    code << iter_t->first << " DWORD ?\n";
+                }
+                else if(id_value->type == "struct")
+                {
+                    code << iter_t->first << " " + id_value->struct_name << " ?\n";
+                }
+                else
+                {
+                    code << iter_t->first << " " << type << " ?\n";
+                }
             }
             code << iter->first << " ENDS\n";
         }
