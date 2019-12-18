@@ -102,9 +102,9 @@ class SegmentBlock
         {
             return (*para_map)[id];
         }
-        if(global_id_map.count(id) != 0)
+        if(global_id_map.count("global_" + id) != 0)
         {
-            return global_id_map[id];
+            return global_id_map["global_" + id];
         }
         return 0;
     }
@@ -119,6 +119,14 @@ class SegmentBlock
                 return install_name;
             }
             p = p->front;
+        }
+        if(para_map->count(id) != 0)
+        {
+            return id;
+        }
+        if(global_id_map.count("global_" + id) != 0)
+        {
+            return "global_" + id;
         }
         return id;
     }

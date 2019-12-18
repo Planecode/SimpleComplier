@@ -103,7 +103,7 @@ class CodeGenerate
             }
             else
             {
-                code << iter->first << " " << type << " ?\n";
+                code << iter->first << " " << type << " " << id_value->init_value << "\n";
             }
         }
     }

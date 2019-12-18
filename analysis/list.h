@@ -128,7 +128,7 @@ class List
         string arg1 = "";
         if(node_1 != 0)
         {
-            if(node_1->description != "number")
+            if(node_1->description != "number" && node_1->description != "pointer")
             {
                 arg1 = segment_block->get_true_id(node_1->value);
             }
@@ -141,7 +141,7 @@ class List
         string arg2 = "";
         if(node_2 != 0)
         {
-            if(node_2->description != "number")
+            if(node_2->description != "number" && node_2->description != "pointer")
             {
                 arg2 = segment_block->get_true_id(node_2->value);
             }
@@ -154,7 +154,7 @@ class List
         string result = "";
         if(node_3 != 0)
         {
-            if(node_3->description != "number")
+            if(node_3->description != "number" && node_3->description != "pointer")
             {
                 result = segment_block->get_true_id(node_3->value); 
             }
@@ -226,19 +226,19 @@ class List
     {
         if(nowNode->description == "id")
         {
-            if(global_id_map.count(nowNode->value) == 0)
+            if(global_id_map.count("global_" + nowNode->value) == 0)
             {
-                global_id_map[nowNode->value] = new IdValue();
+                global_id_map["global_" + nowNode->value] = new IdValue();
             }
-            global_id_map[nowNode->value]->allocate(type);
+            global_id_map["global_" + nowNode->value]->allocate(type);
         }
         else if(nowNode->description == "array_id")
         {
-            if(global_id_map.count(nowNode->cNode[0]->value) == 0)
+            if(global_id_map.count("global_" + nowNode->cNode[0]->value) == 0)
             {
-                global_id_map[nowNode->cNode[0]->value] = new IdValue();
+                global_id_map["global_" + nowNode->cNode[0]->value] = new IdValue();
             }
-            IdValue *id_value = global_id_map[nowNode->cNode[0]->value];
+            IdValue *id_value = global_id_map["global_" + nowNode->cNode[0]->value];
             id_value->is_array = 1;
             id_value->dimension = nowNode->cNode[1]->cNodeLength;
             id_value->array_width = new int(nowNode->cNode[1]->cNodeLength);
@@ -257,11 +257,11 @@ class List
                 cNode = cNode->cNode[0];
                 dimension++;
             }
-            if(global_id_map.count(nowNode->cNode[0]->value) == 0)
+            if(global_id_map.count("global_" + nowNode->cNode[0]->value) == 0)
             {
-                global_id_map[nowNode->cNode[0]->value] = new IdValue();
+                global_id_map["global_" + nowNode->cNode[0]->value] = new IdValue();
             }
-            IdValue *id_value = global_id_map[nowNode->cNode[0]->value];
+            IdValue *id_value = global_id_map["global_" + nowNode->cNode[0]->value];
             id_value->is_pointer = 1;
             id_value->dimension = dimension;
             id_value->allocate(type);
@@ -269,7 +269,9 @@ class List
     }
     void generate_global_assign(node *nowNode, string type)
     {
-        
+        global_allocate(nowNode->cNode[0], type);
+        IdValue *id_value = global_id_map["global_" + nowNode->cNode[0]->value];
+        id_value->init_value = nowNode->cNode[1]->value;
     }
 
     void generate_struct(node *nowNode)
@@ -449,18 +451,20 @@ class List
     }
     void generate_pointer_expression(node *nowNode)
     {
-        if (nowNode->value == "")
-            nowNode->value = "[";
         if(nowNode->cNode[0]->description == "id" || nowNode->cNode[0]->description == "pointer")
         {
             string arg1 = segment_block->get_true_id(nowNode->cNode[0]->value);
-            nowNode->value += arg1 + "+4]";
+            push(new ThreeAddress("=", arg1, "", "ecx"));
+            nowNode->value = "[ecx]";
         }
         else
         {
             string arg1 = segment_block->get_true_id(nowNode->cNode[0]->cNode[0]->value);
-            nowNode->value += arg1 + "+" + to_string(stoi(nowNode->cNode[0]->cNode[1]->value) * 4 + 4) + "]";
+            push(new ThreeAddress("=", arg1, "", "ecx"));
+            nowNode->value = "[ecx+";
+            nowNode->value += to_string(stoi(nowNode->cNode[0]->cNode[1]->value) * 4) + "]";
         }
+        
     }
     void generate_array_expression(node *nowNode)
     {

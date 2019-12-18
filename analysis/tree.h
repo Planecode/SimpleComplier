@@ -17,7 +17,8 @@ class IdValue
     int size;
     int *array_width;
     int dimension;
-    IdValue(): type("None"), struct_name("None"), width(0), array_width(0), is_array(0), is_pointer(0)
+    string init_value;
+    IdValue(): type("None"), struct_name("None"), width(0), array_width(0), is_array(0), is_pointer(0), init_value("?")
     {
 
     }
