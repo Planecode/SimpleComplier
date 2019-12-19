@@ -6,7 +6,6 @@
 #include <set>
 #include <map>
 #include <stack>
-#include <cstdlib>
 #include "check.h"
 #include "table.h"
 
@@ -432,6 +431,7 @@ class List
         }
         else
         {
+            TypeCheck::clear_stack();
             generate_calc(nowNode);
         }
     }
@@ -505,13 +505,8 @@ class List
         
         if(nowNode->description == "=")
         {
-            // TypeCheck type_check(segment_block);
-            // string msg = type_check.check_operator(nowNode);
-            // if(msg != "")
-            // {
-            //     cout << msg << endl;
-            //     exit(-1);
-            // }
+            TypeCheck type_check(segment_block);
+            type_check.check_binary_operator(nowNode);
             if(nowNode->cNode[0]->description == "array_id")
             {
                 string index = get_index(nowNode->cNode[0]);
@@ -556,14 +551,20 @@ class List
         }
         else if(nowNode->description == "r_++")
         {
+            TypeCheck type_check(segment_block);
+            type_check.check_unary_operator(nowNode);
             safe_push("inc", nowNode->cNode[0], 0, 0);
         }
         else if(nowNode->description == "r_--")
         {
+            TypeCheck type_check(segment_block);
+            type_check.check_unary_operator(nowNode);
             safe_push("dec", nowNode->cNode[0], 0, 0);
         }
         else if(nowNode->description == "^")
         {
+            TypeCheck type_check(segment_block);
+            type_check.check_binary_operator(nowNode);
             if (nowNode->value == "")
             {
                 nowNode->value = getTmp();
@@ -603,17 +604,14 @@ class List
         }
         else if(cmpSet.count(nowNode->description))
         {
+            TypeCheck type_check(segment_block);
+            type_check.check_binary_operator(nowNode);
             safe_push("cmp", nowNode->cNode[0], nowNode->cNode[1], 0);
         }
         else
         {
-            // TypeCheck type_check(segment_block);
-            // string msg = type_check.check_operator(nowNode);
-            // if(msg != "")
-            // {
-            //     cout << msg << endl;
-            //     exit(-1);
-            // }
+            TypeCheck type_check(segment_block);
+            type_check.check_binary_operator(nowNode);
             if (nowNode->value == "")
             {
                 nowNode->value = getTmp();
@@ -710,6 +708,11 @@ class List
                 if(id_value->is_array)
                 {
                     op = "=[]";
+                }
+                else
+                {
+                    TypeCheck type_check(segment_block);
+                    type_check.check_pointer_assign(nowNode);
                 }
                 arg1 = segment_block->get_true_id(nowNode->cNode[1]->value);
             }
@@ -950,6 +953,7 @@ class List
             control_jump->switch_true_false();
             return control_jump;
         }
+        TypeCheck::clear_stack();
         generate_calc(nowNode);
         ThreeAddress *j_end = new ThreeAddress(bool_jump[end + nowNode->description], "", "", "");
         push(j_end);
@@ -1010,6 +1014,7 @@ class List
     }
     void generate_switch(node *nowNode)
     {
+        TypeCheck::clear_stack();
         generate_calc(nowNode->cNode[0]);
         generate_case(nowNode->cNode[1], nowNode->cNode[0]->value);
     }
