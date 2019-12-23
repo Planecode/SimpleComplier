@@ -3,5 +3,5 @@
 
 ## Test:
 ### ./analysis.exe file_name.c
-### ./asm.bat file_nmae
+### ./asm.bat file_name
 ### ./file_name.exe
